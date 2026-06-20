@@ -91,7 +91,7 @@ FORMATTER	:= clang-format
 # even if a file of the same name exists
 .PHONY: all clean lint format build bear cells
 
-all: lint format build cells
+all: lint format build
 
 build: $(EXT_TARGET) cells
 
