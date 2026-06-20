@@ -77,3 +77,25 @@ To further reduce such pipeline stalls, we thoroughly compressed our data repres
 When developing support for translucent cells, we encountered severe z-fighting manifested as flickering colours of all faces along the boundary between chunks processed by different GPU working groups. This was because the blending technique used by the OpenGL graphics library depends on the order in which the cells were drawn, but the concurrent culling causes cells to be ordered non-deterministically. We addressed this by sorting cells so that those furthest from the camera are drawn first, making the see-through effect consistent. Although the parallel nature of the [bitonic merge sort algorithm](https://developer.nvidia.com/gpugems/gpugems2/part-vi-simulation-and-numerical-algorithms/chapter-46-improved-gpu-sorting) we used fully exploits the GPU hardware it runs on, it still caused noticeable latency on small simulations due to the overhead of concurrency control. As such, we allowed the user to toggle transparency support so that this is only incurred when necessary.
 
 Our renderer allows users to see the simulation up close by scrolling in and dragging the window. Before rendering each frame, we use users' mouse interactions to compute rotation and projection matrices to transform the 3D space to fit their perspective.
+
+## Sources of inspiration
+- [Conway's *Game of Life*](https://playgameoflife.com/)
+- [Particle life](https://sandbox-science.com/particle-life)
+- [Visual PDE](https://visualpde.com/)
+- [Emoji simulator](https://ncase.me/sim/?s=conway)
+- [3D Cellular Automata - Softology](https://www.youtube.com/watch?v=dQJ5aEsP6Fs)
+- [Complex Behaviour from Simple Rules: 3 Simulations - Sebastian Lague](https://www.youtube.com/watch?v=kzwT3wQWAHE)
+- [Candidates for the Game of Life in Three Dimensions - Carter Bays](https://content.wolfram.com/sites/13/2018/02/01-3-1.pdf)
+
+## References
+- [Improved GPU Sorting - Nvidia Developer](https://developer.nvidia.com/gpugems/gpugems2/part-vi-simulation-and-numerical-algorithms/chapter-46-improved-gpu-sorting)
+- [Stream Reduction Operations for GPGPU Applications - Nvidia Developer](https://developer.nvidia.com/gpugems/gpugems2/part-iv-general-purpose-computation-gpus-primer/chapter-36-stream-reduction)
+- [Learn OpenGL](https://learnopengl.com/)
+- [The Definitive Guide to OpenGL VBOs, VAOs, and EBOs - Deyan Sirakov](https://medium.com/@deyan.sirakov2006/the-definitive-guide-to-opengl-vbos-vaos-and-ebos-6193ab13ccc5)
+- [Coordinate Spaces in OpenGL: Frames of Reference for Creating 3D Graphics - Francisco Zavala](https://medium.com/imagecraft/coordinate-spaces-in-opengl-frames-of-reference-for-creating-3d-graphics-87a078b286eb)
+- [GPU Driven Rendering Overview - Vulkan Guide](https://vkguide.dev/docs/gpudriven/gpu_driven_engines/)
+- [Ambient occlusion for Minecraft-like worlds - 0fps](https://0fps.net/2013/07/03/ambient-occlusion-for-minecraft-like-worlds/)
+- [Palette Compression - Voxel.wiki](https://voxel.wiki/wiki/palette-compression/)
+- [The Book of Shaders - Patricio Gonzalez Vivo, Jen Lowe](https://thebookofshaders.com/)
+- [Crafting a Clean, Maintainable, and Understandable Makefile for a C Project - Luca Cavallin](https://www.lucavallin.com/blog/crafting-clean-maintainable-understandable-makefile-for-c-project)
+- [How to Structure C Projects: These Best Practices Worked for Me - Luca Cavallin](https://www.lucavallin.com/blog/how-to-structure-c-projects-my-experience-best-practices)
