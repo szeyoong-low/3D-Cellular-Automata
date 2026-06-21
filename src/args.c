@@ -30,8 +30,8 @@ static struct argp_option options[] = {
      0},
     {"opacity", OPACITY_FLAG, NULL, 0, "Enable support for opacity", 0},
     {"lighting", LIGHTING_FLAG, NULL, 0, "Enable Phong lighting", 0},
-    {"initialseed", INIT_SEED_FLAG, "INT", 0,
-     "Set a custom starting seed for random", 0},
+    {"initialseed", INIT_SEED_FLAG, "UINT", 0,
+     "Set a custom starting seed for random number generator", 0},
     // array end
     {0}};
 
@@ -128,7 +128,7 @@ args parse_args(int argc, char **argv) {
       .opacity = false,
       .lighting = false,
       .custom_seed = false,
-      .seed = 0,
+      .seed = 0, // Just a dummy number
   };
 
   // parse cli args
