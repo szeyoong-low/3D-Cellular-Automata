@@ -61,7 +61,7 @@ int main(int argc, char **argv) {
   // (the framebuffer) and the event queue (mouse moves, key presses, close
   // button clicks). It works like the FILE * handler.
   GLFWwindow *window =
-      glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, NULL, NULL);
+      glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, args.cell_path, NULL, NULL);
   if (!window) {
     glfwTerminate();
     return EXIT_FAILURE;
