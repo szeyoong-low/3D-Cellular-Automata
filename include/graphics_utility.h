@@ -4,9 +4,8 @@
 #include <GLFW/glfw3.h>
 #include <sys/types.h>
 
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
-#define WINDOW_TITLE "3D Cellular Automata"
+#define WINDOW_WIDTH 800 // Fallback only
+#define WINDOW_HEIGHT 600 // Fallback only
 
 #define CULLING_LOCAL_SIZE_X 10.0F
 #define CULLING_LOCAL_SIZE_Y 10.0F
