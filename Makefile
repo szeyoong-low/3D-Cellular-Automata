@@ -28,16 +28,10 @@ EXT_INC_DIR := include
 # Directories containing shaders (.glsl)
 EXT_SHADER_DIR := shaders
 
-# Directory containing custom cell files
-CELL_SRC_DIR := custom_cell
-
 # Finds all source files
 # Note that this pattern only matches source files 1 level deep 
 # For more information on wildcards: https://www.gnu.org/software/make/manual/html_node/Wildcard-Function.html
 EXT_SRC_FILES := $(wildcard $(EXT_SRC_DIR)/*.c)
-
-# Find all custom cell C source files
-CELL_SRC_FILES := $(wildcard $(CELL_SRC_DIR)/*.c)
 
 # Finds all header files
 EXT_HEADERS := $(wildcard $(EXT_INC_DIR)/*.h)
@@ -48,8 +42,16 @@ EXT_SHADERS := $(wildcard $(EXT_SHADER_DIR)/*.glsl)
 # Third-party generated sources — compiled but excluded from linting/formatting
 THIRD_PARTY_SRCS := $(EXT_SRC_DIR)/glad.c
 
+# Directory containing custom cell files (known as configs)
+CONFIG_SRC_DIR := custom_cell
+
+CONFIG_TARGET := config
+
+# Find all custom cell C source files
+CONFIG_SRC_FILES := $(wildcard $(CONFIG_SRC_DIR)/*.c)
+
 # All first-party files for linting and formatting
-CODEBASE := $(EXT_MAIN) $(filter-out $(THIRD_PARTY_SRCS),$(EXT_SRC_FILES)) $(EXT_HEADERS) $(CELL_SRC_FILES)
+CODEBASE := $(EXT_MAIN) $(filter-out $(THIRD_PARTY_SRCS),$(EXT_SRC_FILES)) $(EXT_HEADERS) $(CONFIG_SRC_FILES)
 
 # Maps files e.g. 'emulate_src/foo.c' to 'build/emulate_src/foo.o'
 # See https://www.gnu.org/software/make/manual/make.html#Text-Functions
@@ -59,7 +61,7 @@ EXT_OBJS := $(patsubst %.c, $(BUILD_DIR)/%.o, $(EXT_SRC_FILES))
 ALL_OBJS := $(EXT_MAIN_OBJ) $(EXT_OBJS)
 
 # Maps 'custom_cell/foo.c' to 'bin/foo.so'
-CELL_SOS := $(patsubst $(CELL_SRC_DIR)/%.c, $(BIN_DIR)/%.so, $(CELL_SRC_FILES))
+CONFIG_SOS := $(patsubst $(CONFIG_SRC_DIR)/%.c, $(BIN_DIR)/%.so, $(CONFIG_SRC_FILES))
 
 # Compiler flags
 # -g: Include debugging information
@@ -89,11 +91,11 @@ FORMATTER	:= clang-format
 
 # Phony targets don't correspond to actual files. They will always execute
 # even if a file of the same name exists
-.PHONY: all clean lint format build bear cells
+.PHONY: all clean lint format build bear
 
 all: lint format build
 
-build: $(EXT_TARGET) cells
+build: $(EXT_TARGET) $(CONFIG_TARGET)
 
 # The format of a Makefile rule is:
 # <target>: <dependencies>...
@@ -131,12 +133,13 @@ $(BUILD_DIR)/%.o: %.c
 	@mkdir -p $(@D)
 	@$(CC) $(CFLAGS) -c $< -o $@
 
-cells: $(CELL_SOS)
+$(CONFIG_TARGET): $(CONFIG_SOS)
+	@printf "\nCustom configs built\n"
 
 # -shared tells GCC to build a library
 # -fPIC tells GCC to make the code position independent
 # which allows for dynamic loading
-$(BIN_DIR)/%.so: $(CELL_SRC_DIR)/%.c
+$(BIN_DIR)/%.so: $(CONFIG_SRC_DIR)/%.c
 	@mkdir -p $(@D)
 	@$(CC) $(CFLAGS) -shared -fPIC $< -o $@
 
