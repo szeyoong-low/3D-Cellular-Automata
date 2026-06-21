@@ -7,6 +7,7 @@
 #define STEPTIME_FLAG 's'
 #define OPACITY_FLAG 'o'
 #define LIGHTING_FLAG 'l'
+#define INIT_SEED_FLAG 'i'
 
 // items for argp
 // provides a version for --version
@@ -29,6 +30,8 @@ static struct argp_option options[] = {
      0},
     {"opacity", OPACITY_FLAG, NULL, 0, "Enable support for opacity", 0},
     {"lighting", LIGHTING_FLAG, NULL, 0, "Enable Phong lighting", 0},
+    {"initialseed", INIT_SEED_FLAG, "INT", 0,
+     "Set a custom starting seed for random", 0},
     // array end
     {0}};
 
@@ -77,6 +80,17 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     args->lighting = true;
     break;
   }
+  case INIT_SEED_FLAG: {
+    args->custom_seed = true;
+    char *endptr;
+    long val = strtol(arg, &endptr, 10);
+    if (*endptr != '\0' || val < 0) {
+      argp_error(state,
+                 "Flag -i requires an integer greater than or equal to 0");
+    }
+    args->seed = (uint)val;
+    break;
+  }
   // handles a string not attached to a flag (our cell path)
   case ARGP_KEY_ARG: {
     // checks the number of strings passed
@@ -113,6 +127,8 @@ args parse_args(int argc, char **argv) {
       .steptime = 1,
       .opacity = false,
       .lighting = false,
+      .custom_seed = false,
+      .seed = 0,
   };
 
   // parse cli args
