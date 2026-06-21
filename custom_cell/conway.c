@@ -3,10 +3,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define SURVIVE_RULE_1 5
-#define SURVIVE_RULE_2 7
-#define BIRTH_RULE_1 6
-#define BIRTH_RULE_2 6
+#define SURVIVE_RULE_1 4
+#define SURVIVE_RULE_2 5
+#define BIRTH_RULE_1 5
+#define BIRTH_RULE_2 5
 #define START_PERCENT 10
 
 // an implementation of conway's game of life adapted for 3D
