@@ -13,6 +13,8 @@ typedef struct {
   double steptime;
   bool opacity;
   bool lighting;
+  bool custom_seed;
+  uint seed;
 } args;
 
 // parses the arguments passed into the program

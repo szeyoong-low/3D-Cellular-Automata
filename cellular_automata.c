@@ -27,12 +27,13 @@
 #define FPS_UPDATE_INTERVAL 0.4
 
 int main(int argc, char **argv) {
-  time_t initial_seed = time(NULL);
-  printf("Initial seed used: %ld\n", initial_seed);
-  srand((uint)initial_seed);
-  void *handle;
-
   args args = parse_args(argc, argv);
+
+  uint initial_seed = args.custom_seed ? args.seed : (uint)time(NULL);
+  printf("Initial seed used: %d\n", initial_seed);
+  srand(initial_seed);
+
+  void *handle;
   CellConfig cell_config = load_cell_config(args.cell_path, &handle);
   const uint sim_width = args.width;
   const uint sim_height = args.height;

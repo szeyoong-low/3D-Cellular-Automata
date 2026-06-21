@@ -16,7 +16,7 @@ Our engine is:
 
 - **Beautiful**: Users can determine the colour and transparency of every cell. They can also enable lighting effects with just one flag.
 
-These are a few systems we have been able to simulate.
+These are a few systems we have been able to simulate. To see them in action, run `demo.sh` from the project root.
 
 <table>
     <tr>
@@ -38,7 +38,6 @@ These are a few systems we have been able to simulate.
         <td width="200" align="center" valign="top">We programmed the laws of gravity and let the emergent behaviour create the yellow filaments</td>
     </tr>
 </table>
-
 
 We hope to create more complex, exciting simulations and further optimise the renderer to support them. Check out our issues page to see features and fixes in the pipeline
 
