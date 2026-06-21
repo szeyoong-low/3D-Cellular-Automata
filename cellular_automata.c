@@ -54,6 +54,7 @@ int main(int argc, char **argv) {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 
   // A window is the OS-managed rectangle on screen with a title bar.
   // GLFW asks the operating system to create one. It owns the pixels on screen
