@@ -12,22 +12,22 @@
 #define MAX_NUTRIENTS 255.0F
 #define MAX_SCENT 255.0F
 // rate at which pheromones evaporate every step
-#define PHEROMONE_DECAY_AMOUNT 3.5F
+#define PHEROMONE_DECAY_AMOUNT 2.5F
 // dynamic decay rate is calculated with:
 // dyn_decay = decay_amount + rand(0, decay_jitter)
-#define PHEROMONE_DECAY_JITTER 12
+#define PHEROMONE_DECAY_JITTER 10
 // rate at which pheromones diffuse to neighbours
 #define PHEROMONE_DIFFUSION_COEFF 0.6F
 // determines how much pheromon is retained during diffusion
 // i.e. 1 - RETENTION_RATE = % pheromone lost during diffusion
-#define PHEROMONE_RETENTION_RATE 0.85F
+#define PHEROMONE_RETENTION_RATE 0.75F
 // scent coefficients
 #define SCENT_DECAY_AMOUNT 12.0F
 #define SCENT_DECAY_JITTER 10
-#define SCENT_DIFFUSION_COEFF 0.85F
+#define SCENT_DIFFUSION_COEFF 0.95F
 #define SCENT_RETENTION_RATE 0.40F
 // multiplier of how aggressively mold pioritises scent
-#define SCENT_WEIGHT 1.5F
+#define SCENT_WEIGHT 2.0F
 // mold ignores scent below the threshold
 #define SCENT_NOISE_FLOOR 15.0F
 // base pheromone threshold at which the cell becomes mold
@@ -46,11 +46,11 @@
 #define FOOD_SPAWN_HITS 1
 #define FOOD_SPAWN_TOTAL 10000
 // mold spawn rate = hits / total
-#define MOLD_SPAWN_HITS 2
+#define MOLD_SPAWN_HITS 1
 #define MOLD_SPAWN_TOTAL 10000
 // maximum initial mold and food cells allowed
 #define MAX_MOLD_PER_SIM 1
-#define MAX_FOOD_PER_SIM 5
+#define MAX_FOOD_PER_SIM 4
 
 #define MOLD_COLOUR(opacity)                                                   \
   (RenderInfo) { MAX_RGBA_VAL, 200, 0, opacity }
