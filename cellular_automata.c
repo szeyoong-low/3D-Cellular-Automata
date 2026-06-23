@@ -252,8 +252,9 @@ int main(int argc, char **argv) {
 
         for (int j = i - 1; j >= 0; j--) {
           glUniform1ui(sort_step_loc, POWER_TWO(j));
-          glDispatchCompute(NUM_WORKERS(num_instances_padded, SORTING_LOCAL_SIZE_X),
-                            SORTING_NUM_WORKERS_Y, SORTING_NUM_WORKERS_Z);
+          glDispatchCompute(
+              NUM_WORKERS(num_instances_padded, SORTING_LOCAL_SIZE_X),
+              SORTING_NUM_WORKERS_Y, SORTING_NUM_WORKERS_Z);
           glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         }
       }

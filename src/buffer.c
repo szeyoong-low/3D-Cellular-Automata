@@ -63,15 +63,13 @@ inline void render_info_buffer_init(GLuint *render_info_buffer, size_t size,
                     GL_DYNAMIC_DRAW);
 }
 
-inline void hidden_cell_buffer_init(GLuint *hidden_cell_buffer,
-                                    size_t size) {
+inline void hidden_cell_buffer_init(GLuint *hidden_cell_buffer, size_t size) {
   glGenBuffers(1, hidden_cell_buffer);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, HIDDEN_CELL_SSBO_BINDING,
                    *hidden_cell_buffer);
   // GLSL's smallest integer type is 32 bits wide
-  glNamedBufferData(*hidden_cell_buffer,
-                    (GLsizeiptr)(size * sizeof(GLuint)), NULL,
-                    GL_DYNAMIC_DRAW);
+  glNamedBufferData(*hidden_cell_buffer, (GLsizeiptr)(size * sizeof(GLuint)),
+                    NULL, GL_DYNAMIC_DRAW);
 }
 
 inline void instance_buffer_init(GLuint *instance_buffer, size_t size) {
@@ -85,9 +83,8 @@ inline void instance_buffer_init(GLuint *instance_buffer, size_t size) {
   // This allocates and initialises the buffer (NULL to skip initialisation).
   // GL_DYNAMIC_DRAW: hint to the driver that thid data is re-uploaded
   // frequently This will change on every frame when the simulation runs
-  glNamedBufferData(*instance_buffer,
-                    (GLsizeiptr)(size * sizeof(InstanceData)), NULL,
-                    GL_DYNAMIC_DRAW);
+  glNamedBufferData(*instance_buffer, (GLsizeiptr)(size * sizeof(InstanceData)),
+                    NULL, GL_DYNAMIC_DRAW);
 
   // The VAO makes recordings for the current VBO bound to GL_ARRAY_BUFFER
   // Position offset
@@ -120,6 +117,6 @@ inline void sort_key_buffer_init(GLuint *sort_key_buffer, size_t size) {
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SORT_KEY_SSBO_BINDING,
                    *sort_key_buffer);
   glNamedBufferData(*sort_key_buffer,
-                    (GLsizeiptr)(sizeof(float) * next_power_two(size)),
-                    NULL, GL_DYNAMIC_DRAW);
+                    (GLsizeiptr)(sizeof(float) * next_power_two(size)), NULL,
+                    GL_DYNAMIC_DRAW);
 }

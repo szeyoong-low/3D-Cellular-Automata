@@ -29,8 +29,7 @@ extern void vertex_buffer_init(GLuint *vertex_buffer);
 extern void element_buffer_init(GLuint *element_buffer);
 extern void render_info_buffer_init(GLuint *render_info_buffer, size_t size,
                                     const RenderInfo *data);
-extern void hidden_cell_buffer_init(GLuint *hidden_cell_buffer,
-                                    size_t size);
+extern void hidden_cell_buffer_init(GLuint *hidden_cell_buffer, size_t size);
 extern void instance_buffer_init(GLuint *instance_buffer, size_t size);
 extern void draw_indirect_buffer_init(GLuint *draw_indirect_buffer);
 extern void sort_key_buffer_init(GLuint *sort_key_buffer, size_t size);
