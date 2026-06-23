@@ -54,7 +54,8 @@
 
 #define MOLD_COLOUR(opacity)                                                   \
   (RenderInfo) { MAX_RGBA_VAL, 200, 0, opacity }
-#define PHEROMONE_COLOUR (RenderInfo){MAX_RGBA_VAL, 192, 203, 20}
+#define PHEROMONE_COLOUR                                                       \
+  (RenderInfo) { MAX_RGBA_VAL, 192, 203, 20 }
 #define FOOD_COLOUR                                                            \
   (RenderInfo) { 0, 180, MAX_RGBA_VAL, MAX_RGBA_VAL }
 #define EMPTY_COLOUR (RenderInfo){0, 0, 0, 0};

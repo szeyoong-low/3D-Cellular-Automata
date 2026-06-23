@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <sys/types.h>
 
-#define WINDOW_WIDTH 800 // Fallback only
+#define WINDOW_WIDTH 800  // Fallback only
 #define WINDOW_HEIGHT 600 // Fallback only
 
 #define CULLING_LOCAL_SIZE_X 10.0F
