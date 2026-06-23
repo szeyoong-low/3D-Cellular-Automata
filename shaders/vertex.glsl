@@ -1,6 +1,11 @@
 // Runs once per vertex to decide its position
 #version 450 core
 
+#define POSITION_ATTR_BINDING 0
+#define OFFSET_ATTR_BINDING 1
+#define COLOUR_ATTR_BINDING 2
+#define FACE_INDEX_ATTR_BINDING 3
+
 #define FACES_PER_CUBE 6
 #define X_AXIS_POSITIVE vec3(1, 0, 0)
 #define X_AXIS_NEGATIVE vec3(-1, 0, 0)
@@ -9,7 +14,8 @@
 #define Z_AXIS_POSITIVE vec3(0, 0, 1)
 #define Z_AXIS_NEGATIVE vec3(0, 0, -1)
 
-#define LOCAL_POSITION(x, y, tan, bitan, norm) (((x) * (tan)) + ((y) * (bitan)) + (norm))
+#define LOCAL_POSITION(x, y, tan, bitan, norm)                                 \
+  (((x) * (tan)) + ((y) * (bitan)) + (norm))
 
 // Order: front -> back -> left -> right -> bottom -> top
 // In OpenGL, the y-axis grows upwards, x-axis righwards, and z-axis towards you
@@ -40,24 +46,23 @@ uniform mat4 uViewProj; // View composed with project
 
 // Declaration of input variable aPos (per-vertex position attribute)
 // in: from CPU side (VAO)
-// vec3: 3-component float vector
+// vec2: 2-component float vector
 // location 0 matches attribute slot 0 in the VAO
-layout(location = 0) in vec3 aPos;
+layout(location = POSITION_ATTR_BINDING) in vec2 aPos;
 
 // Per-instance world position, fed from the instance VBO
-layout(location = 2) in vec3 aOffset;
+layout(location = OFFSET_ATTR_BINDING) in vec3 aOffset;
 
 // Used to index arrays of tangents, bitangents, and normals, so that face can
 // be oriented and offset.
-layout(location = 4) in uint aFaceIndex;
+// Also for calculating transformed normals for Phong lighting
+layout(location = FACE_INDEX_ATTR_BINDING) in uint aFaceIndex;
 
-// Calculating transformed normals, for Phong lighting
-layout(location = 1) in uint aNormalIndex;
 out vec3 vNormal;  // local normal transformed into world space
 out vec3 vFragPos; // World space position of the vertex
 
 // Sent to fragment shader
-layout(location = 3) in vec4 aColor; // Already normalised
+layout(location = COLOUR_ATTR_BINDING) in vec4 aColor; // Already normalised
 out vec4 vColor;
 
 // A uniform is a variable set from the CPU (your C code) that stays constant
@@ -83,14 +88,19 @@ void main() {
   // aOffset shifts the entire cube to its world position
   // aPos gives the position of each corner
   // Multiply by 0.5 to produce unit cubes
-  vec4 worldSpacePos = vec4(aPos * 0.5 + aOffset, 1.0);
+  vec4 worldSpacePos =
+      vec4(LOCAL_POSITION(aPos.x, aPos.y, TANGENTS[aFaceIndex],
+                          BITANGENTS[aFaceIndex], NORMALS[aFaceIndex]) *
+                   0.5 +
+               aOffset,
+           1.0);
 
   // gl_Position is a variable that must be written to
   gl_Position = uViewProj * worldSpacePos;
 
   // vFragPos stays in world space as it's what fragment shader needs
   vFragPos = vec3(worldSpacePos);
-  vNormal = NORMALS[aNormalIndex];
+  vNormal = NORMALS[aFaceIndex];
 
   vColor = aColor;
 }
