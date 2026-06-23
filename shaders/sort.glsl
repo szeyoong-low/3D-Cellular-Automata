@@ -1,5 +1,10 @@
 #version 450 core
 
+#define INSTANCE_SSBO_BINDING 2
+#define SORT_KEY_SSBO_BINDING 4
+
+#define SORTING_LOCAL_SIZE_X 256
+
 struct InstanceData {
   ivec3 offset;
   uint packedColour;
@@ -8,11 +13,11 @@ struct InstanceData {
 
 // Sorting is 1D work (1 thread/comparison).
 // 256 is a good choice as it is a moderately large power of two.
-layout(local_size_x = 256) in;
-layout(std430, binding = 2) buffer InstanceBuffer {
+layout(local_size_x = SORTING_LOCAL_SIZE_X) in;
+layout(std430, binding = INSTANCE_SSBO_BINDING) buffer InstanceBuffer {
   InstanceData instanceBuffer[];
 };
-layout(std430, binding = 4) buffer SortKeys { float sortKeys[]; };
+layout(std430, binding = SORT_KEY_SSBO_BINDING) buffer SortKeys { float sortKeys[]; };
 
 uniform uint uBlockSize;
 uniform uint uStepSize;

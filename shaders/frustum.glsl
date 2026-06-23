@@ -1,5 +1,15 @@
 #version 450 core
 
+#define RENDER_INFO_SSBO_BINDING 0
+#define HIDDEN_CELL_SSBO_BINDING 1
+#define INSTANCE_SSBO_BINDING 2
+#define DRAW_INDIRECT_SSBO_BINDING 3
+#define SORT_KEY_SSBO_BINDING 4
+
+#define CULLING_LOCAL_SIZE_X 10
+#define CULLING_LOCAL_SIZE_Y 10
+#define CULLING_LOCAL_SIZE_Z 10
+
 #define HIDDEN_CUBE 0x3F
 #define FACES_PER_CUBE 6
 #define INSTANCE_COUNT_INDEX 1
@@ -11,14 +21,23 @@ struct InstanceData {
   uint faceIndex;
 };
 
-layout(local_size_x = 10, local_size_y = 10, local_size_z = 10) in;
-layout(std430, binding = 0) buffer RenderInfo { uint renderInfo[]; };
-layout(std430, binding = 1) buffer HiddenCells { uint hiddenCells[]; };
-layout(std430, binding = 2) buffer InstanceBuffer {
+layout(local_size_x = CULLING_LOCAL_SIZE_X, local_size_y = CULLING_LOCAL_SIZE_Y,
+       local_size_z = CULLING_LOCAL_SIZE_Z) in;
+layout(std430, binding = RENDER_INFO_SSBO_BINDING) buffer RenderInfo {
+  uint renderInfo[];
+};
+layout(std430, binding = HIDDEN_CELL_SSBO_BINDING) buffer HiddenCells {
+  uint hiddenCells[];
+};
+layout(std430, binding = INSTANCE_SSBO_BINDING) buffer InstanceBuffer {
   InstanceData instanceBuffer[];
 };
-layout(std430, binding = 3) buffer DrawIndirect { uint drawIndirect[]; };
-layout(std430, binding = 4) buffer SortKeys { float sortKeys[]; };
+layout(std430, binding = DRAW_INDIRECT_SSBO_BINDING) buffer DrawIndirect {
+  uint drawIndirect[];
+};
+layout(std430, binding = SORT_KEY_SSBO_BINDING) buffer SortKeys {
+  float sortKeys[];
+};
 
 // sqrt(3)/2, the circumradius of a unit cube, the smallest sphere that
 // fully encloses it. Using a sphere slightly larger than the cube means

@@ -14,6 +14,9 @@
 #define Z_AXIS_POSITIVE vec3(0, 0, 1)
 #define Z_AXIS_NEGATIVE vec3(0, 0, -1)
 
+#define DIMENSION_SCALE 0.5 // Multiply by 0.5 to produce unit cubes
+#define DEFAULT_W_COMPONENT 1.0
+
 #define LOCAL_POSITION(x, y, tan, bitan, norm)                                 \
   (((x) * (tan)) + ((y) * (bitan)) + (norm))
 
@@ -87,13 +90,12 @@ void main() {
   // Matrix multiplication applied right-to-left
   // aOffset shifts the entire cube to its world position
   // aPos gives the position of each corner
-  // Multiply by 0.5 to produce unit cubes
   vec4 worldSpacePos =
       vec4(LOCAL_POSITION(aPos.x, aPos.y, TANGENTS[aFaceIndex],
                           BITANGENTS[aFaceIndex], NORMALS[aFaceIndex]) *
-                   0.5 +
+                   DIMENSION_SCALE +
                aOffset,
-           1.0);
+           DEFAULT_W_COMPONENT);
 
   // gl_Position is a variable that must be written to
   gl_Position = uViewProj * worldSpacePos;

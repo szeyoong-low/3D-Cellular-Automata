@@ -1,10 +1,22 @@
 #version 450 core
 
-layout(local_size_x = 10, local_size_y = 10, local_size_z = 10) in;
-layout(std430, binding = 0) buffer RenderInfo { uint renderInfo[]; };
+#define RENDER_INFO_SSBO_BINDING 0
+#define HIDDEN_CELL_SSBO_BINDING 1
+
+#define CULLING_LOCAL_SIZE_X 10
+#define CULLING_LOCAL_SIZE_Y 10
+#define CULLING_LOCAL_SIZE_Z 10
+
+layout(local_size_x = CULLING_LOCAL_SIZE_X, local_size_y = CULLING_LOCAL_SIZE_Y,
+       local_size_z = CULLING_LOCAL_SIZE_Z) in;
+layout(std430, binding = RENDER_INFO_SSBO_BINDING) buffer RenderInfo {
+  uint renderInfo[];
+};
 // This buffer contains a 6-bit mask per cell (stored in a uint) indicating
 // which of its 6 faces are hidden (corresponding bit set to 1).
-layout(std430, binding = 1) buffer HiddenCells { uint hiddenCells[]; };
+layout(std430, binding = HIDDEN_CELL_SSBO_BINDING) buffer HiddenCells {
+  uint hiddenCells[];
+};
 
 #define HIDDEN_CUBE 0x3F
 #define FULLY_VISIBLE_CUBE 0x0
@@ -18,7 +30,9 @@ layout(std430, binding = 1) buffer HiddenCells { uint hiddenCells[]; };
 // x is column, y is row, z is slice, w is uWidth, h is uHeight
 #define INDEX(x, y, z, w, h) ((x) + (w) * ((y) + (h) * (z)))
 // Each uint[] holds all 4 RGBA channels packed into one 32-bit word
-#define ALPHA(index) ((renderInfo[index] >> 24) & 0xFFu)
+#define ALPHA_OFFSET 24
+#define ONE_BYTE_MASK 0xFFu
+#define ALPHA(index) ((renderInfo[index] >> ALPHA_OFFSET) & ONE_BYTE_MASK)
 
 uniform uint uWidth;
 uniform uint uHeight;
