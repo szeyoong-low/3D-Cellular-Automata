@@ -36,6 +36,4 @@ inline ulong next_power_two(ulong n) {
   return n + 1;
 }
 
-inline int next_multiple_16(int n) {
-  return (n + MASK_4_BITS) & ~MASK_4_BITS;
-}
+inline int next_multiple_16(int n) { return (n + MASK_4_BITS) & ~MASK_4_BITS; }
