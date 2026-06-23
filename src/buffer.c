@@ -1,8 +1,7 @@
 #include "buffer.h"
+#include "face.h"
 #include "graphics_utility.h"
-#include "mesh.h"
-
-#define POSITION_NUM_COMPONENTS 3
+#include <stdint.h>
 
 // Vertex buffer object (VBO): a region of GPU memory holding raw vertex bytes
 inline void attribute_buffer_init(GLuint *attribute_buffer) {
@@ -16,12 +15,12 @@ inline void vertex_buffer_init(GLuint *vertex_buffer) {
   glBindBuffer(GL_ARRAY_BUFFER, *vertex_buffer);
   // Upload the mesh from CPU RAM into GPU VRAM
   // GL_STATIC_DRAW: hint that the data is uploaded once and drawn many times
-  glNamedBufferData(*vertex_buffer, (GLsizeiptr)sizeof(cube_vertices),
-                    cube_vertices, GL_STATIC_DRAW);
+  glNamedBufferData(*vertex_buffer, (GLsizeiptr)sizeof(face_vertices),
+                    face_vertices, GL_STATIC_DRAW);
 
   // Tell the GPU how to interpret the bytes in the VBO currently bound to
   // GL_ARRAY_BUFFER for attribute slot 0:
-  // - 3 bytes in this attribute
+  // - 2 bytes in this attribute
   // - no normalisation
   // - stride: # bytes between consecutive vertices
   // - offset: # bytes from the start of each vertex
@@ -30,16 +29,10 @@ inline void vertex_buffer_init(GLuint *vertex_buffer) {
   // Note that integers are automatically cast to floats on the GPU side
 
   // Positions
-  glVertexAttribPointer(POSITION_ATTR_BINDING, POSITION_NUM_COMPONENTS, GL_BYTE,
-                        GL_FALSE, CUBE_COMPONENTS_PER_VERTEX * sizeof(int8_t),
-                        (void *)0);
+  glVertexAttribPointer(POSITION_ATTR_BINDING, FACE_COMPONENTS_PER_VERTEX,
+                        GL_BYTE, GL_FALSE,
+                        FACE_COMPONENTS_PER_VERTEX * sizeof(int8_t), (void *)0);
   glEnableVertexAttribArray(POSITION_ATTR_BINDING);
-
-  // Normals
-  glVertexAttribIPointer(NORMAL_ATTR_BINDING, sizeof(int8_t), GL_UNSIGNED_BYTE,
-                         CUBE_COMPONENTS_PER_VERTEX * sizeof(int8_t),
-                         (void *)(POSITION_NUM_COMPONENTS * sizeof(int8_t)));
-  glEnableVertexAttribArray(NORMAL_ATTR_BINDING);
 }
 
 // Element buffer object (EBO) tells allows triangles in the mesh to reuse
@@ -47,8 +40,8 @@ inline void vertex_buffer_init(GLuint *vertex_buffer) {
 inline void element_buffer_init(GLuint *element_buffer) {
   glGenBuffers(1, element_buffer);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, *element_buffer);
-  glNamedBufferData(*element_buffer, (GLsizeiptr)sizeof(cube_indices),
-                    cube_indices, GL_STATIC_DRAW);
+  glNamedBufferData(*element_buffer, (GLsizeiptr)sizeof(face_indices),
+                    face_indices, GL_STATIC_DRAW);
 }
 
 // Shader storage buffer objects (SSBO) allow the GPU to write to them.
@@ -102,8 +95,9 @@ inline void instance_buffer_init(GLuint *instance_buffer, size_t size) {
   glVertexAttribDivisor(COLOUR_ATTR_BINDING, 1);
 
   // Face index
-  glVertexAttribPointer(FACE_INDEX_ATTR_BINDING, sizeof(GLuint), GL_UNSIGNED_BYTE,
-                        GL_TRUE, sizeof(InstanceData), (void *)sizeof(ivec4));
+  glVertexAttribIPointer(FACE_INDEX_ATTR_BINDING, sizeof(uint8_t),
+                         GL_UNSIGNED_BYTE, sizeof(InstanceData),
+                         (void *)sizeof(ivec4));
   glEnableVertexAttribArray(FACE_INDEX_ATTR_BINDING);
   glVertexAttribDivisor(FACE_INDEX_ATTR_BINDING, 1);
 }
