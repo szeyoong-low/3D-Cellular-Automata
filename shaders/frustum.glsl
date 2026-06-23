@@ -1,5 +1,7 @@
 #version 450 core
 
+#define HIDDEN_CUBE 0x3F
+
 const uint max_layers = 5;
 
 // Below this, a face is edge-on (around 6 degrees) and not meaningfully visible
@@ -53,7 +55,7 @@ void main() {
 
   // Out of bounds/hidden
   if (x >= uWidth || y >= uHeight || z >= uDepth ||
-      hiddenCells[INDEX(x, y, z, uWidth, uHeight)] == 1) {
+      hiddenCells[INDEX(x, y, z, uWidth, uHeight)] == HIDDEN_CUBE) {
     return;
   }
 
