@@ -2,11 +2,6 @@
 
 #define HIDDEN_CUBE 0x3F
 
-const uint max_layers = 5;
-
-// Below this, a face is edge-on (around 6 degrees) and not meaningfully visible
-const float face_visibility_threshold = 0.1;
-
 struct InstanceData {
   ivec3 offset;
   uint packedColour;
