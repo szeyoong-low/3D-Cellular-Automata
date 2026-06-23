@@ -41,9 +41,15 @@ uniform uint uDepth;
 const uint opacityFloor = 20; // Below which, a cell is considered transparent
 const uint opacityCeiling = 200; // Above which, a cell is considered opaque
 
-// Precondition: the cube at selfIndex is not transparent and is not at the
-//               boundary of the simulation grid
-bool check_hidden(uint selfIndex, uint otherIndex) {
+// Precondition: the cube at selfIndex is not transparent
+bool check_hidden(uint selfIndex, uint otherX, uint otherY, uint otherZ) {
+  if (otherX < 0 || otherX >= uWidth || otherY < 0 ||
+      otherY >= uHeight || otherZ < 0 || otherZ >= uDepth) {
+    // Visible faces at the edge of the simulation grid are never culled
+    return false;
+  }
+
+  const uint otherIndex = INDEX(otherX, otherY, otherZ, uWidth, uHeight);
   const uint selfAlpha = ALPHA(selfIndex);
   const uint otherAlpha = ALPHA(otherIndex);
 
@@ -76,24 +82,14 @@ void main() {
   if (ALPHA(selfIndex) < opacityFloor) {
     // All faces of transparent cells are hidden (the whole cell is culled)
     hidden = HIDDEN_CUBE;
-  } else if (x == 0 || x == uWidth - 1 || y == 0 || y == uHeight - 1 ||
-             z == 0 || z == uDepth - 1) {
-    // Visible cells at the edge of the simulation grid are never culled
-    hidden = FULLY_VISIBLE_CUBE;
   } else {
     // Check faces individually
-    hidden |= uint(check_hidden(selfIndex, INDEX(x, y, z + 1, uWidth, uHeight)))
-              << FRONT_FACE_OFFSET;
-    hidden |= uint(check_hidden(selfIndex, INDEX(x, y, z - 1, uWidth, uHeight)))
-              << BACK_FACE_OFFSET;
-    hidden |= uint(check_hidden(selfIndex, INDEX(x - 1, y, z, uWidth, uHeight)))
-              << LEFT_FACE_OFFSET;
-    hidden |= uint(check_hidden(selfIndex, INDEX(x + 1, y, z, uWidth, uHeight)))
-              << RIGHT_FACE_OFFSET;
-    hidden |= uint(check_hidden(selfIndex, INDEX(x, y - 1, z, uWidth, uHeight)))
-              << BOTTOM_FACE_OFFSET;
-    hidden |= uint(check_hidden(selfIndex, INDEX(x, y + 1, z, uWidth, uHeight)))
-              << TOP_FACE_OFFSET;
+    hidden |= uint(check_hidden(selfIndex, x, y, z + 1)) << FRONT_FACE_OFFSET;
+    hidden |= uint(check_hidden(selfIndex, x, y, z - 1)) << BACK_FACE_OFFSET;
+    hidden |= uint(check_hidden(selfIndex, x - 1, y, z)) << LEFT_FACE_OFFSET;
+    hidden |= uint(check_hidden(selfIndex, x + 1, y, z)) << RIGHT_FACE_OFFSET;
+    hidden |= uint(check_hidden(selfIndex, x, y - 1, z)) << BOTTOM_FACE_OFFSET;
+    hidden |= uint(check_hidden(selfIndex, x, y + 1, z)) << TOP_FACE_OFFSET;
   }
 
   hiddenCells[selfIndex] = hidden;

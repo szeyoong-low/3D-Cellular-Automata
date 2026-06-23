@@ -17,7 +17,9 @@ layout(local_size_x = SORTING_LOCAL_SIZE_X) in;
 layout(std430, binding = INSTANCE_SSBO_BINDING) buffer InstanceBuffer {
   InstanceData instanceBuffer[];
 };
-layout(std430, binding = SORT_KEY_SSBO_BINDING) buffer SortKeys { float sortKeys[]; };
+layout(std430, binding = SORT_KEY_SSBO_BINDING) buffer SortKeys {
+  float sortKeys[];
+};
 
 uniform uint uBlockSize;
 uniform uint uStepSize;
