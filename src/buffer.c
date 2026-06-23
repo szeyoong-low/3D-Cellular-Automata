@@ -100,6 +100,12 @@ inline void instance_buffer_init(GLuint *instance_buffer, size_t size) {
                         GL_TRUE, sizeof(InstanceData), (void *)sizeof(ivec3));
   glEnableVertexAttribArray(COLOUR_ATTR_BINDING);
   glVertexAttribDivisor(COLOUR_ATTR_BINDING, 1);
+
+  // Face index
+  glVertexAttribPointer(FACE_INDEX_ATTR_BINDING, sizeof(GLuint), GL_UNSIGNED_BYTE,
+                        GL_TRUE, sizeof(InstanceData), (void *)sizeof(ivec4));
+  glEnableVertexAttribArray(FACE_INDEX_ATTR_BINDING);
+  glVertexAttribDivisor(FACE_INDEX_ATTR_BINDING, 1);
 }
 
 // Buffer for a single draw indirect command

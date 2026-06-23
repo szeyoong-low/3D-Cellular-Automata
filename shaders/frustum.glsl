@@ -1,10 +1,14 @@
 #version 450 core
 
 #define HIDDEN_CUBE 0x3F
+#define FACES_PER_CUBE 6
+#define INSTANCE_COUNT_INDEX 1
+#define ONE_BIT_MASK 0x1
 
 struct InstanceData {
   ivec3 offset;
   uint packedColour;
+  uint faceIndex;
 };
 
 layout(local_size_x = 10, local_size_y = 10, local_size_z = 10) in;
@@ -47,10 +51,10 @@ void main() {
   const uint x = gl_GlobalInvocationID.x;
   const uint y = gl_GlobalInvocationID.y;
   const uint z = gl_GlobalInvocationID.z;
+  uint hiddenMask = hiddenCells[INDEX(x, y, z, uWidth, uHeight)];
 
   // Out of bounds/hidden
-  if (x >= uWidth || y >= uHeight || z >= uDepth ||
-      hiddenCells[INDEX(x, y, z, uWidth, uHeight)] == HIDDEN_CUBE) {
+  if (x >= uWidth || y >= uHeight || z >= uDepth || hiddenMask == HIDDEN_CUBE) {
     return;
   }
 
@@ -65,18 +69,28 @@ void main() {
   if (check_plane(uLeft, center) && check_plane(uRight, center) &&
       check_plane(uTop, center) && check_plane(uBottom, center) &&
       check_plane(uNear, center) && check_plane(uFar, center)) {
-    uint instance_no = atomicAdd(drawIndirect[1], 1);
 
-    // Prepare the information needed for rendering
-    instanceBuffer[instance_no].offset = ivec3(x_off, y_off, z_off);
-    instanceBuffer[instance_no].packedColour =
-        renderInfo[INDEX(x, y, z, uWidth, uHeight)];
+    // Only needed if opacity is enabled
+    // Use projected distance of the cell along the camera's view axis
+    // to sort the instances in descending order of distance from the
+    // camera before drawing
+    const float projectedDist = dot(center, uViewDir);
 
-    if (uOpacity) {
-      // Use projected distance of the cell along the camera's view axis
-      // to sort the instances in descending order of distance from the
-      // camera before drawing
-      sortKeys[instance_no] = dot(center, uViewDir);
+    // Generate one instance per visible face.
+    for (int i = 0; i < FACES_PER_CUBE; i++, hiddenMask >>= 1) {
+      if (!bool(hiddenMask & ONE_BIT_MASK)) {
+        uint instance_no = atomicAdd(drawIndirect[INSTANCE_COUNT_INDEX], 1);
+
+        // Prepare the information needed for rendering
+        instanceBuffer[instance_no].offset = ivec3(x_off, y_off, z_off);
+        instanceBuffer[instance_no].packedColour =
+            renderInfo[INDEX(x, y, z, uWidth, uHeight)];
+        instanceBuffer[instance_no].faceIndex = i;
+
+        if (uOpacity) {
+          sortKeys[instance_no] = projectedDist;
+        }
+      }
     }
   }
 }

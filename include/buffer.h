@@ -9,6 +9,7 @@
 #define NORMAL_ATTR_BINDING 1
 #define OFFSET_ATTR_BINDING 2
 #define COLOUR_ATTR_BINDING 3
+#define FACE_INDEX_ATTR_BINDING 4
 
 #define RENDER_INFO_SSBO_BINDING 0
 #define HIDDEN_CELL_SSBO_BINDING 1
@@ -19,6 +20,7 @@
 typedef struct {
   ivec3 offset;
   uint packedColour;
+  uint faceIndex;
 } InstanceData;
 
 // Vertex attribute object (VAO): records all attribute bindings made

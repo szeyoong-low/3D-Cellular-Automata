@@ -9,6 +9,8 @@
 #define Z_AXIS_POSITIVE vec3(0, 0, 1)
 #define Z_AXIS_NEGATIVE vec3(0, 0, -1)
 
+#define LOCAL_POSITION(x, y, tan, bitan, norm) (((x) * (tan)) + ((y) * (bitan)) + (norm))
+
 // Order: front -> back -> left -> right -> bottom -> top
 // In OpenGL, the y-axis grows upwards, x-axis righwards, and z-axis towards you
 // Tangent × bitangent must equal the outward normal so that transformed
@@ -44,6 +46,10 @@ layout(location = 0) in vec3 aPos;
 
 // Per-instance world position, fed from the instance VBO
 layout(location = 2) in vec3 aOffset;
+
+// Used to index arrays of tangents, bitangents, and normals, so that face can
+// be oriented and offset.
+layout(location = 4) in uint aFaceIndex;
 
 // Calculating transformed normals, for Phong lighting
 layout(location = 1) in uint aNormalIndex;
