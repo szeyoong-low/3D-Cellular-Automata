@@ -1,7 +1,6 @@
 #include "buffer.h"
 #include "face.h"
 #include "graphics_utility.h"
-#include <stdint.h>
 
 // Vertex buffer object (VBO): a region of GPU memory holding raw vertex bytes
 inline void attribute_buffer_init(GLuint *attribute_buffer) {
@@ -95,8 +94,8 @@ inline void instance_buffer_init(GLuint *instance_buffer, size_t size) {
   glVertexAttribDivisor(COLOUR_ATTR_BINDING, 1);
 
   // Face index
-  glVertexAttribIPointer(FACE_INDEX_ATTR_BINDING, sizeof(uint8_t),
-                         GL_UNSIGNED_BYTE, sizeof(InstanceData),
+  glVertexAttribIPointer(FACE_INDEX_ATTR_BINDING, 1,
+                         GL_UNSIGNED_INT, sizeof(InstanceData),
                          (void *)sizeof(ivec4));
   glEnableVertexAttribArray(FACE_INDEX_ATTR_BINDING);
   glVertexAttribDivisor(FACE_INDEX_ATTR_BINDING, 1);
