@@ -58,12 +58,12 @@ layout(location = OFFSET_ATTR_BINDING) in vec3 aOffset;
 // Also for calculating transformed normals for Phong lighting
 layout(location = FACE_INDEX_ATTR_BINDING) in uint aFaceIndex;
 
-out vec3 vNormal;  // local normal transformed into world space
-out vec3 vFragPos; // World space position of the vertex
+out flat vec3 vNormal;  // local normal transformed into world space
+out flat vec3 vFragPos; // World space position of the vertex
 
 // Sent to fragment shader
 layout(location = COLOUR_ATTR_BINDING) in vec4 aColor; // Already normalised
-out vec4 vColor;
+out flat vec4 vColor;
 
 // A uniform is a variable set from the CPU (your C code) that stays constant
 // for every vertex and fragment in a single draw call. Contrast it with in
