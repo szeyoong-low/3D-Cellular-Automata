@@ -3,6 +3,7 @@
 struct InstanceData {
   ivec3 offset;
   uint packedColour;
+  uint faceIndex;
 };
 
 // Sorting is 1D work (1 thread/comparison).

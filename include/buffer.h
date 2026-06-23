@@ -20,6 +20,8 @@ typedef struct {
   ivec3 offset;
   uint packedColour;
   uint faceIndex;
+  // Beware of struct alignment: vec3 has a base alignment of 16 bytes in GLSL
+  uint _pad[3];
 } InstanceData;
 
 // Vertex attribute object (VAO): records all attribute bindings made
