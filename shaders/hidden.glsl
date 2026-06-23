@@ -7,7 +7,7 @@ layout(std430, binding = 0) buffer RenderInfo { uint renderInfo[]; };
 layout(std430, binding = 1) buffer HiddenCells { uint hiddenCells[]; };
 
 #define HIDDEN_CUBE 0x3F
-#define FULL_CUBE 0x0
+#define FULLY_VISIBLE_CUBE 0x0
 #define FRONT_FACE_OFFSET 0  // (z = +1)
 #define BACK_FACE_OFFSET 1   // (z = -1)
 #define LEFT_FACE_OFFSET 2   // (x = -1)
@@ -57,7 +57,7 @@ void main() {
   }
 
   const uint selfIndex = INDEX(x, y, z, uWidth, uHeight);
-  uint hidden = FULL_CUBE;
+  uint hidden = FULLY_VISIBLE_CUBE;
 
   if (ALPHA(selfIndex) < opacityFloor) {
     // All faces of transparent cells are hidden (the whole cell is culled)
@@ -65,7 +65,7 @@ void main() {
   } else if (x == 0 || x == uWidth - 1 || y == 0 || y == uHeight - 1 ||
              z == 0 || z == uDepth - 1) {
     // Visible cells at the edge of the simulation grid are never culled
-    hidden = FULL_CUBE;
+    hidden = FULLY_VISIBLE_CUBE;
   } else {
     // Check faces individually
     hidden |= uint(check_hidden(selfIndex, INDEX(x, y, z + 1, uWidth, uHeight)))
