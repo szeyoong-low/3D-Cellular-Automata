@@ -1,8 +1,33 @@
 // Runs once per vertex to decide its position
 #version 450 core
 
-const vec3 NORMALS[6] = vec3[6](vec3(0, 0, 1), vec3(0, 0, -1), vec3(-1, 0, 0),
-                                vec3(1, 0, 0), vec3(0, -1, 0), vec3(0, 1, 0));
+#define FACES_PER_CUBE 6
+#define X_AXIS_POSITIVE vec3(1, 0, 0)
+#define X_AXIS_NEGATIVE vec3(-1, 0, 0)
+#define Y_AXIS_POSITIVE vec3(0, 1, 0)
+#define Y_AXIS_NEGATIVE vec3(0, -1, 0)
+#define Z_AXIS_POSITIVE vec3(0, 0, 1)
+#define Z_AXIS_NEGATIVE vec3(0, 0, -1)
+
+// Order: front -> back -> left -> right -> bottom -> top
+// In OpenGL, the y-axis grows upwards, x-axis righwards, and z-axis towards you
+// Tangent × bitangent must equal the outward normal so that transformed
+// vertices wind counter-clockwise.
+
+// Where local x-axis of the face maps to
+const vec3 TANGENTS[FACES_PER_CUBE] =
+    vec3[FACES_PER_CUBE](X_AXIS_POSITIVE, X_AXIS_NEGATIVE, Z_AXIS_POSITIVE,
+                         Z_AXIS_NEGATIVE, X_AXIS_POSITIVE, X_AXIS_POSITIVE);
+
+// Where local y-axis of the face maps to
+const vec3 BITANGENTS[FACES_PER_CUBE] =
+    vec3[FACES_PER_CUBE](Y_AXIS_POSITIVE, Y_AXIS_POSITIVE, Y_AXIS_POSITIVE,
+                         Y_AXIS_POSITIVE, Z_AXIS_POSITIVE, Z_AXIS_NEGATIVE);
+
+// Local offset (to set up faces within cube)
+const vec3 NORMALS[FACES_PER_CUBE] =
+    vec3[FACES_PER_CUBE](Z_AXIS_POSITIVE, Z_AXIS_NEGATIVE, X_AXIS_NEGATIVE,
+                         X_AXIS_POSITIVE, Y_AXIS_NEGATIVE, Y_AXIS_POSITIVE);
 
 // Uploaded from C via glUniformMatrix4fv each frame
 // No need for a model matrix (local space → world space) - done by instance

@@ -36,13 +36,13 @@ bool check_hidden(uint selfIndex, uint otherIndex) {
   // 1. Faces at the surface of a cluster of cubes should be rendered
   //    unconditionally
   return (otherAlpha >= opacityFloor) &&
-  // 2. A boundary between two cubes of the same packed colour should be
-  //    culled unconditionally
+         // 2. A boundary between two cubes of the same packed colour should be
+         //    culled unconditionally
          (renderInfo[selfIndex] == renderInfo[otherIndex] ||
-  // 3. A boundary between two cubes of different packed colours should
-  //    be rendered if and only if the other cube is at or below the
-  //    opacity ceiling. If both cells are below the opacity ceiling,
-  //    the back face will be culled later on.
+          // 3. A boundary between two cubes of different packed colours should
+          //    be rendered if and only if the other cube is at or below the
+          //    opacity ceiling. If both cells are below the opacity ceiling,
+          //    the back face will be culled later on.
           otherAlpha > opacityCeiling);
 }
 
