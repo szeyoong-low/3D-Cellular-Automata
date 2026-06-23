@@ -5,6 +5,7 @@
 
 #define FACE_TOTAL_VERTICES 6
 #define FACE_UNIQUE_VERTICES 4
+// Will be placed in 3D space by vertex shader
 #define FACE_COMPONENTS_PER_VERTEX 2
 
 extern const int8_t
