@@ -1,9 +1,9 @@
 #include "graphics_utility.h"
-#include "mesh.h"
+#include "face.h"
 #include <stdio.h>
 
 const DrawElementsIndirectCommand draw_indirect_cmd = {
-    .count = CUBE_VERTEX_COUNT, // # indices/instance
+    .count = FACE_TOTAL_VERTICES, // # indices/instance
     .instanceCount = 0, // # instances/draw (updated by the compute shader)
     .firstIndex = 0,    // Starting offset into EBO
     .baseVertex = 0,    // Added to each index value before fetching from VBO
