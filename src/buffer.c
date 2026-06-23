@@ -53,28 +53,28 @@ inline void element_buffer_init(GLuint *element_buffer) {
 
 // Shader storage buffer objects (SSBO) allow the GPU to write to them.
 // We use them here to cache the results of culling hidden cells.
-inline void render_info_buffer_init(GLuint *render_info_buffer, size_t sim_size,
+inline void render_info_buffer_init(GLuint *render_info_buffer, size_t size,
                                     const RenderInfo *data) {
   glGenBuffers(1, render_info_buffer);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, RENDER_INFO_SSBO_BINDING,
                    *render_info_buffer);
   glNamedBufferData(*render_info_buffer,
-                    (GLsizeiptr)(sim_size * sizeof(RenderInfo)), data,
+                    (GLsizeiptr)(size * sizeof(RenderInfo)), data,
                     GL_DYNAMIC_DRAW);
 }
 
 inline void hidden_cell_buffer_init(GLuint *hidden_cell_buffer,
-                                    size_t sim_size) {
+                                    size_t size) {
   glGenBuffers(1, hidden_cell_buffer);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, HIDDEN_CELL_SSBO_BINDING,
                    *hidden_cell_buffer);
   // GLSL's smallest integer type is 32 bits wide
   glNamedBufferData(*hidden_cell_buffer,
-                    (GLsizeiptr)(sim_size * sizeof(GLuint)), NULL,
+                    (GLsizeiptr)(size * sizeof(GLuint)), NULL,
                     GL_DYNAMIC_DRAW);
 }
 
-inline void instance_buffer_init(GLuint *instance_buffer, size_t sim_size) {
+inline void instance_buffer_init(GLuint *instance_buffer, size_t size) {
   glGenBuffers(1, instance_buffer);
   // 2 separate binding points are needed:
   // - VAO attribute for access by the vertex shader
@@ -86,7 +86,7 @@ inline void instance_buffer_init(GLuint *instance_buffer, size_t sim_size) {
   // GL_DYNAMIC_DRAW: hint to the driver that thid data is re-uploaded
   // frequently This will change on every frame when the simulation runs
   glNamedBufferData(*instance_buffer,
-                    (GLsizeiptr)(sim_size * sizeof(InstanceData)), NULL,
+                    (GLsizeiptr)(size * sizeof(InstanceData)), NULL,
                     GL_DYNAMIC_DRAW);
 
   // The VAO makes recordings for the current VBO bound to GL_ARRAY_BUFFER
@@ -115,11 +115,11 @@ inline void draw_indirect_buffer_init(GLuint *draw_indirect_buffer) {
                     &draw_indirect_cmd, GL_DYNAMIC_DRAW);
 }
 
-inline void sort_key_buffer_init(GLuint *sort_key_buffer, size_t sim_size) {
+inline void sort_key_buffer_init(GLuint *sort_key_buffer, size_t size) {
   glGenBuffers(1, sort_key_buffer);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SORT_KEY_SSBO_BINDING,
                    *sort_key_buffer);
   glNamedBufferData(*sort_key_buffer,
-                    (GLsizeiptr)(sizeof(float) * next_power_two(sim_size)),
+                    (GLsizeiptr)(sizeof(float) * next_power_two(size)),
                     NULL, GL_DYNAMIC_DRAW);
 }
