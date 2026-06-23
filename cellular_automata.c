@@ -143,7 +143,7 @@ int main(int argc, char **argv) {
   vertex_buffer_init(&vertex_buffer);
   element_buffer_init(&element_buffer);
   render_info_buffer_init(&render_info_buffer, sim_size, sim_render_info(sim));
-  hidden_cell_buffer_init(&hidden_cell_buffer, num_instances);
+  hidden_cell_buffer_init(&hidden_cell_buffer, sim_size);
   instance_buffer_init(&instance_buffer,
                        (opacity) ? num_instances_padded : num_instances);
   draw_indirect_buffer_init(&draw_indirect_buffer);
