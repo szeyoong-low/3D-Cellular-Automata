@@ -2,6 +2,8 @@
 #include "face.h"
 #include <stdio.h>
 
+#define MASK_4_BITS 0xF
+
 const DrawElementsIndirectCommand draw_indirect_cmd = {
     .count = FACE_TOTAL_VERTICES, // # indices/instance
     .instanceCount = 0, // # instances/draw (updated by the compute shader)
@@ -32,4 +34,8 @@ inline ulong next_power_two(ulong n) {
   n |= n >> 16;
   n |= n >> 32;
   return n + 1;
+}
+
+inline int next_multiple_16(int n) {
+  return (n + MASK_4_BITS) & ~MASK_4_BITS;
 }

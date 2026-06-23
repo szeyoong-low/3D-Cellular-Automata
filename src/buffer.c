@@ -79,9 +79,13 @@ inline void instance_buffer_init(GLuint *instance_buffer, size_t size) {
                     NULL, GL_DYNAMIC_DRAW);
 
   // The VAO makes recordings for the current VBO bound to GL_ARRAY_BUFFER
+
+  // Beware of struct alignment: vec3 has a base alignment of 16 bytes in GLSL
+  const int stride = next_multiple_16(sizeof(InstanceData));
+
   // Position offset
   glVertexAttribPointer(OFFSET_ATTR_BINDING, 3, GL_INT, GL_FALSE,
-                        sizeof(InstanceData), (void *)0);
+                        stride,  (void *)offsetof(InstanceData, offset));
   glEnableVertexAttribArray(OFFSET_ATTR_BINDING);
   glVertexAttribDivisor(OFFSET_ATTR_BINDING,
                         1); // Attribute advances once per instance
@@ -89,14 +93,14 @@ inline void instance_buffer_init(GLuint *instance_buffer, size_t size) {
   // Packed colour
   // Normalise flag: unsigned integer values mapped to [0, 1]
   glVertexAttribPointer(COLOUR_ATTR_BINDING, sizeof(GLuint), GL_UNSIGNED_BYTE,
-                        GL_TRUE, sizeof(InstanceData), (void *)sizeof(ivec3));
+                        GL_TRUE, stride,  (void *)offsetof(InstanceData, packedColour));
   glEnableVertexAttribArray(COLOUR_ATTR_BINDING);
   glVertexAttribDivisor(COLOUR_ATTR_BINDING, 1);
 
   // Face index
   glVertexAttribIPointer(FACE_INDEX_ATTR_BINDING, 1,
-                         GL_UNSIGNED_INT, sizeof(InstanceData),
-                         (void *)sizeof(ivec4));
+                         GL_UNSIGNED_INT, stride,
+                          (void *)offsetof(InstanceData, faceIndex));
   glEnableVertexAttribArray(FACE_INDEX_ATTR_BINDING);
   glVertexAttribDivisor(FACE_INDEX_ATTR_BINDING, 1);
 }

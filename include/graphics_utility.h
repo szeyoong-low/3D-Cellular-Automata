@@ -44,4 +44,7 @@ extern void framebuffer_size_callback(GLFWwindow *window, int width,
 
 extern ulong next_power_two(ulong n);
 
+// Assumes input is non-negative
+extern int next_multiple_16(int n);
+
 #endif
