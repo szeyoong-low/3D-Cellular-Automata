@@ -18,14 +18,6 @@
 #include "graphics_utility.h"
 #include "shader.h"
 
-#define DESTROY_AND_EXIT(window, success)                                      \
-  glfwDestroyWindow(window);                                                   \
-  glfwTerminate();                                                             \
-  return (success) ? EXIT_SUCCESS : EXIT_FAILURE;
-
-#define TITLE_BUFFER_SIZE 64
-#define FPS_UPDATE_INTERVAL 0.4
-
 int main(int argc, char **argv) {
   args args = parse_args(argc, argv);
 
