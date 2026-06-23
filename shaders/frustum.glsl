@@ -51,10 +51,15 @@ void main() {
   const uint x = gl_GlobalInvocationID.x;
   const uint y = gl_GlobalInvocationID.y;
   const uint z = gl_GlobalInvocationID.z;
-  uint hiddenMask = hiddenCells[INDEX(x, y, z, uWidth, uHeight)];
 
   // Out of bounds/hidden
-  if (x >= uWidth || y >= uHeight || z >= uDepth || hiddenMask == HIDDEN_CUBE) {
+  if (x >= uWidth || y >= uHeight || z >= uDepth) {
+    return;
+  }
+
+  uint hiddenMask = hiddenCells[INDEX(x, y, z, uWidth, uHeight)];
+
+  if (hiddenMask == HIDDEN_CUBE) {
     return;
   }
 
