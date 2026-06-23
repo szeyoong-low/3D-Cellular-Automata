@@ -1,0 +1,15 @@
+#ifndef FACE_H
+#define FACE_H
+
+#include <inttypes.h>
+
+#define FACE_TOTAL_VERTICES 6
+#define FACE_UNIQUE_VERTICES 4
+#define FACE_COMPONENTS_PER_VERTEX 2
+
+extern const int8_t
+    face_vertices[FACE_UNIQUE_VERTICES * FACE_COMPONENTS_PER_VERTEX];
+
+extern const uint8_t face_indices[FACE_TOTAL_VERTICES];
+
+#endif
