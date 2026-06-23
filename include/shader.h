@@ -20,6 +20,7 @@
 #define WIDTH_UNIFORM "uWidth"
 #define HEIGHT_UNIFORM "uHeight"
 #define DEPTH_UNIFORM "uDepth"
+#define NO_WALLS_UNIFORM "uNoWalls"
 #define SORT_BLOCK_UNIFORM "uBlockSize"
 #define SORT_STEP_UNIFORM "uStepSize"
 
@@ -44,5 +45,8 @@ extern void shader_upload_dim_uniforms(GLuint shader_prog, uint width,
 
 extern void shader_upload_lighting_uniforms(GLuint shader_prog, bool lighting,
                                             vec3 light_pos);
+
+extern void shader_upload_flag(GLuint shader_prog, bool flag,
+                               const char *identifier);
 
 #endif

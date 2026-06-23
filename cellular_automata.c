@@ -132,6 +132,8 @@ int main(int argc, char **argv) {
 
   shader_upload_dim_uniforms(hidden_cell_culling, sim_width, sim_height,
                              sim_depth);
+  shader_upload_flag(hidden_cell_culling, !opacity || args.no_walls,
+                     NO_WALLS_UNIFORM);
   shader_upload_dim_uniforms(frustum_culling, sim_width, sim_height, sim_depth);
 
   // VRAM buffer initialisation

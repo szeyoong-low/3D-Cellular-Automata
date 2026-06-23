@@ -38,13 +38,15 @@ uniform uint uWidth;
 uniform uint uHeight;
 uniform uint uDepth;
 
+uniform bool uNoWalls;
+
 const uint opacityFloor = 20; // Below which, a cell is considered transparent
 const uint opacityCeiling = 200; // Above which, a cell is considered opaque
 
 // Precondition: the cube at selfIndex is not transparent
 bool check_hidden(uint selfIndex, uint otherX, uint otherY, uint otherZ) {
-  if (otherX < 0 || otherX >= uWidth || otherY < 0 ||
-      otherY >= uHeight || otherZ < 0 || otherZ >= uDepth) {
+  if (otherX < 0 || otherX >= uWidth || otherY < 0 || otherY >= uHeight ||
+      otherZ < 0 || otherZ >= uDepth) {
     // Visible faces at the edge of the simulation grid are never culled
     return false;
   }
@@ -58,7 +60,7 @@ bool check_hidden(uint selfIndex, uint otherX, uint otherY, uint otherZ) {
   return (otherAlpha >= opacityFloor) &&
          // 2. A boundary between two cubes of the same packed colour should be
          //    culled unconditionally
-         (renderInfo[selfIndex] == renderInfo[otherIndex] ||
+         ((uNoWalls && (renderInfo[selfIndex] == renderInfo[otherIndex])) ||
           // 3. A boundary between two cubes of different packed colours should
           //    be rendered if and only if the other cube is at or below the
           //    opacity ceiling. If both cells are below the opacity ceiling,
