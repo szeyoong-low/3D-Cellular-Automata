@@ -14,6 +14,7 @@
 // Must come after glad is included so that types are defined
 #include "buffer.h"
 #include "camera.h"
+#include "face.h"
 #include "frustum.h"
 #include "graphics_utility.h"
 #include "shader.h"
@@ -31,6 +32,7 @@ int main(int argc, char **argv) {
   const uint sim_height = args.height;
   const uint sim_depth = args.depth;
   const size_t sim_size = sim_width * sim_height * sim_depth;
+  const size_t num_instances = sim_size * FACES_PER_CUBE;
   const double step_time = args.steptime;
   const bool opacity = args.opacity;
 
@@ -87,11 +89,12 @@ int main(int argc, char **argv) {
   GLuint zero = 0;
   vec3 eye;
   vec3 light_pos = {10.0F, 10.0F, 10.0F};
-  Camera cam;
+
   // For bitonic sorting
   const float neg_inf = -HUGE_VALF;
-  const ulong sim_size_padded = next_power_two(sim_size);
-  const int sort_num_passes = (int)log2((double)sim_size_padded);
+  const ulong num_instances_padded = next_power_two(num_instances);
+  const int sort_num_passes = (int)log2((double)num_instances_padded);
+
   // Radius of the smallest sphere that encloses the grid, from its centre.
   // Used to size the initial camera distance, FOV, and far clipping plane.
   const float bounding_radius =
@@ -100,6 +103,7 @@ int main(int argc, char **argv) {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   // Start 2× the bounding radius away so the full grid fits in the FOV
+  Camera cam;
   camera_init(&cam, window, 2.0F * bounding_radius);
 
   // Shaders are loaded from disk relative to the working directory.
@@ -139,9 +143,9 @@ int main(int argc, char **argv) {
   vertex_buffer_init(&vertex_buffer);
   element_buffer_init(&element_buffer);
   render_info_buffer_init(&render_info_buffer, sim_size, sim_render_info(sim));
-  hidden_cell_buffer_init(&hidden_cell_buffer, sim_size);
+  hidden_cell_buffer_init(&hidden_cell_buffer, num_instances);
   instance_buffer_init(&instance_buffer,
-                       (opacity) ? sim_size_padded : sim_size);
+                       (opacity) ? num_instances_padded : num_instances);
   draw_indirect_buffer_init(&draw_indirect_buffer);
 
   GLuint bitonic_sort;
@@ -154,7 +158,7 @@ int main(int argc, char **argv) {
         (ShaderDef[]){{GL_COMPUTE_SHADER, BITONIC_SORT_COMPUTE_SHADER}}, 1);
     sort_block_loc = glGetUniformLocation(bitonic_sort, SORT_BLOCK_UNIFORM);
     sort_step_loc = glGetUniformLocation(bitonic_sort, SORT_STEP_UNIFORM);
-    sort_key_buffer_init(&sort_key_buffer, sim_size_padded);
+    sort_key_buffer_init(&sort_key_buffer, num_instances_padded);
   } else {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -248,7 +252,7 @@ int main(int argc, char **argv) {
 
         for (int j = i - 1; j >= 0; j--) {
           glUniform1ui(sort_step_loc, POWER_TWO(j));
-          glDispatchCompute(NUM_WORKERS(sim_size_padded, SORTING_LOCAL_SIZE_X),
+          glDispatchCompute(NUM_WORKERS(num_instances_padded, SORTING_LOCAL_SIZE_X),
                             SORTING_NUM_WORKERS_Y, SORTING_NUM_WORKERS_Z);
           glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
         }
