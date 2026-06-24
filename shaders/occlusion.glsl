@@ -1,7 +1,7 @@
 #version 450 core
 
 #define RENDER_INFO_SSBO_BINDING 0
-#define HIDDEN_CELL_SSBO_BINDING 1
+#define OCCLUSION_SSBO_BINDING 1
 
 #define CULLING_LOCAL_SIZE_X 10
 #define CULLING_LOCAL_SIZE_Y 10
@@ -13,12 +13,12 @@ layout(std430, binding = RENDER_INFO_SSBO_BINDING) buffer RenderInfo {
   uint renderInfo[];
 };
 // This buffer contains a 6-bit mask per cell (stored in a uint) indicating
-// which of its 6 faces are hidden (corresponding bit set to 1).
-layout(std430, binding = HIDDEN_CELL_SSBO_BINDING) buffer HiddenCells {
-  uint hiddenCells[];
+// which of its 6 faces are occluded (corresponding bit set to 1).
+layout(std430, binding = OCCLUSION_SSBO_BINDING) buffer OccludedCells {
+  uint occludedCells[];
 };
 
-#define HIDDEN_CUBE 0x3F
+#define OCCLUDED_CUBE 0x3F
 #define FULLY_VISIBLE_CUBE 0x0
 #define FRONT_FACE_OFFSET 0  // (z = +1)
 #define BACK_FACE_OFFSET 1   // (z = -1)
@@ -45,7 +45,7 @@ const uint opacityFloor = 20; // Below which, a cell is considered transparent
 const uint opacityCeiling = 200; // Above which, a cell is considered opaque
 
 // Precondition: the cube at selfIndex is not transparent
-bool check_hidden(uint selfIndex, uint otherX, uint otherY, uint otherZ) {
+bool check_occluded(uint selfIndex, uint otherX, uint otherY, uint otherZ) {
   if (otherX < 0 || otherX >= uWidth || otherY < 0 || otherY >= uHeight ||
       otherZ < 0 || otherZ >= uDepth) {
     // Visible faces at the edge of the simulation grid are never culled
@@ -83,20 +83,20 @@ void main() {
   }
 
   const uint selfIndex = INDEX(x, y, z, uWidth, uHeight);
-  uint hidden = FULLY_VISIBLE_CUBE;
+  uint occluded = FULLY_VISIBLE_CUBE;
 
   if (ALPHA(selfIndex) < opacityFloor) {
-    // All faces of transparent cells are hidden (the whole cell is culled)
-    hidden = HIDDEN_CUBE;
+    // All faces of transparent cells are occluded (the whole cell is culled)
+    occluded = OCCLUDED_CUBE;
   } else {
     // Check faces individually
-    hidden |= uint(check_hidden(selfIndex, x, y, z + 1)) << FRONT_FACE_OFFSET;
-    hidden |= uint(check_hidden(selfIndex, x, y, z - 1)) << BACK_FACE_OFFSET;
-    hidden |= uint(check_hidden(selfIndex, x - 1, y, z)) << LEFT_FACE_OFFSET;
-    hidden |= uint(check_hidden(selfIndex, x + 1, y, z)) << RIGHT_FACE_OFFSET;
-    hidden |= uint(check_hidden(selfIndex, x, y - 1, z)) << BOTTOM_FACE_OFFSET;
-    hidden |= uint(check_hidden(selfIndex, x, y + 1, z)) << TOP_FACE_OFFSET;
+    occluded |= uint(check_occluded(selfIndex, x, y, z + 1)) << FRONT_FACE_OFFSET;
+    occluded |= uint(check_occluded(selfIndex, x, y, z - 1)) << BACK_FACE_OFFSET;
+    occluded |= uint(check_occluded(selfIndex, x - 1, y, z)) << LEFT_FACE_OFFSET;
+    occluded |= uint(check_occluded(selfIndex, x + 1, y, z)) << RIGHT_FACE_OFFSET;
+    occluded |= uint(check_occluded(selfIndex, x, y - 1, z)) << BOTTOM_FACE_OFFSET;
+    occluded |= uint(check_occluded(selfIndex, x, y + 1, z)) << TOP_FACE_OFFSET;
   }
 
-  hiddenCells[selfIndex] = hidden;
+  occludedCells[selfIndex] = occluded;
 }

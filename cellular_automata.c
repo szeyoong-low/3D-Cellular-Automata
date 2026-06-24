@@ -113,8 +113,8 @@ int main(int argc, char **argv) {
                                          {GL_FRAGMENT_SHADER, FRAGMENT_SHADER}},
                            2);
 
-  const GLuint hidden_cell_culling = shader_build_program(
-      (ShaderDef[]){{GL_COMPUTE_SHADER, HIDDEN_CELL_COMPUTE_SHADER}}, 1);
+  const GLuint occlusion_culling = shader_build_program(
+      (ShaderDef[]){{GL_COMPUTE_SHADER, OCCLUSION_COMPUTE_SHADER}}, 1);
 
   const GLuint frustum_culling = shader_build_program(
       (ShaderDef[]){{GL_COMPUTE_SHADER, FRUSTUM_COMPUTE_SHADER}}, 1);
@@ -130,22 +130,22 @@ int main(int argc, char **argv) {
   // Upload these once as they don't change per frame
   shader_upload_lighting_uniforms(render_pipeline, args.lighting, light_pos);
 
-  shader_upload_dim_uniforms(hidden_cell_culling, sim_width, sim_height,
+  shader_upload_dim_uniforms(occlusion_culling, sim_width, sim_height,
                              sim_depth);
-  shader_upload_flag(hidden_cell_culling, args.no_walls, NO_WALLS_UNIFORM);
-  shader_upload_flag(hidden_cell_culling, opacity, OPACITY_UNIFORM);
+  shader_upload_flag(occlusion_culling, args.no_walls, NO_WALLS_UNIFORM);
+  shader_upload_flag(occlusion_culling, opacity, OPACITY_UNIFORM);
   shader_upload_dim_uniforms(frustum_culling, sim_width, sim_height, sim_depth);
 
   // VRAM buffer initialisation
   GLuint attribute_buffer, vertex_buffer, element_buffer, render_info_buffer,
-      hidden_cell_buffer, instance_buffer, draw_indirect_buffer,
+      occlusion_buffer, instance_buffer, draw_indirect_buffer,
       sort_key_buffer;
 
   attribute_buffer_init(&attribute_buffer);
   vertex_buffer_init(&vertex_buffer);
   element_buffer_init(&element_buffer);
   render_info_buffer_init(&render_info_buffer, sim_size, sim_render_info(sim));
-  hidden_cell_buffer_init(&hidden_cell_buffer, sim_size);
+  occlusion_buffer_init(&occlusion_buffer, sim_size);
   instance_buffer_init(&instance_buffer,
                        (opacity) ? num_instances_padded : num_instances);
   draw_indirect_buffer_init(&draw_indirect_buffer);
@@ -167,7 +167,7 @@ int main(int argc, char **argv) {
   }
 
   double last_step_time = glfwGetTime(); // seconds as a double since glfwInit()
-  glUseProgram(hidden_cell_culling);
+  glUseProgram(occlusion_culling);
   glDispatchCompute(NUM_WORKERS(sim_width, CULLING_LOCAL_SIZE_X),
                     NUM_WORKERS(sim_height, CULLING_LOCAL_SIZE_Y),
                     NUM_WORKERS(sim_depth, CULLING_LOCAL_SIZE_Z));
@@ -197,11 +197,11 @@ int main(int argc, char **argv) {
                                (GLsizeiptr)sizeof(RenderInfo),
                            sim_render_info(sim));
 
-      glUseProgram(hidden_cell_culling);
+      glUseProgram(occlusion_culling);
       glDispatchCompute(NUM_WORKERS(sim_width, CULLING_LOCAL_SIZE_X),
                         NUM_WORKERS(sim_height, CULLING_LOCAL_SIZE_Y),
                         NUM_WORKERS(sim_depth, CULLING_LOCAL_SIZE_Z));
-      // Ensures writes to the hidden_cells SSBO are complete and visible to the
+      // Ensures writes to the occlusion SSBO are complete and visible to the
       // next compute shader that needs to read them
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }
@@ -302,13 +302,13 @@ int main(int argc, char **argv) {
   sim_destroy(sim);
   dlclose(handle);
   glDeleteProgram(render_pipeline);
-  glDeleteProgram(hidden_cell_culling);
+  glDeleteProgram(occlusion_culling);
   glDeleteProgram(frustum_culling);
   glDeleteVertexArrays(1, &attribute_buffer);
   glDeleteBuffers(1, &vertex_buffer);
   glDeleteBuffers(1, &element_buffer);
   glDeleteBuffers(1, &render_info_buffer);
-  glDeleteBuffers(1, &hidden_cell_buffer);
+  glDeleteBuffers(1, &occlusion_buffer);
   glDeleteBuffers(1, &instance_buffer);
   glDeleteBuffers(1, &draw_indirect_buffer);
   if (opacity) {

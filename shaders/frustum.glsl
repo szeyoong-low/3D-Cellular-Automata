@@ -1,7 +1,7 @@
 #version 450 core
 
 #define RENDER_INFO_SSBO_BINDING 0
-#define HIDDEN_CELL_SSBO_BINDING 1
+#define OCCLUSION_SSBO_BINDING 1
 #define INSTANCE_SSBO_BINDING 2
 #define DRAW_INDIRECT_SSBO_BINDING 3
 #define SORT_KEY_SSBO_BINDING 4
@@ -10,7 +10,7 @@
 #define CULLING_LOCAL_SIZE_Y 10
 #define CULLING_LOCAL_SIZE_Z 10
 
-#define HIDDEN_CUBE 0x3F
+#define OCCLUDED_CUBE 0x3F
 #define FACES_PER_CUBE 6
 #define INSTANCE_COUNT_INDEX 1
 #define ONE_BIT_MASK 0x1
@@ -26,8 +26,8 @@ layout(local_size_x = CULLING_LOCAL_SIZE_X, local_size_y = CULLING_LOCAL_SIZE_Y,
 layout(std430, binding = RENDER_INFO_SSBO_BINDING) buffer RenderInfo {
   uint renderInfo[];
 };
-layout(std430, binding = HIDDEN_CELL_SSBO_BINDING) buffer HiddenCells {
-  uint hiddenCells[];
+layout(std430, binding = OCCLUSION_SSBO_BINDING) buffer OccludedCells {
+  uint occludedCells[];
 };
 layout(std430, binding = INSTANCE_SSBO_BINDING) buffer InstanceBuffer {
   InstanceData instanceBuffer[];
@@ -71,14 +71,14 @@ void main() {
   const uint y = gl_GlobalInvocationID.y;
   const uint z = gl_GlobalInvocationID.z;
 
-  // Out of bounds/hidden
+  // Out of bounds/occluded
   if (x >= uWidth || y >= uHeight || z >= uDepth) {
     return;
   }
 
-  uint hiddenMask = hiddenCells[INDEX(x, y, z, uWidth, uHeight)];
+  uint occludedMask = occludedCells[INDEX(x, y, z, uWidth, uHeight)];
 
-  if (hiddenMask == HIDDEN_CUBE) {
+  if (occludedMask == OCCLUDED_CUBE) {
     return;
   }
 
@@ -101,8 +101,8 @@ void main() {
     const float projectedDist = dot(center, uViewDir);
 
     // Generate one instance per visible face.
-    for (int i = 0; i < FACES_PER_CUBE; i++, hiddenMask >>= 1) {
-      if (!bool(hiddenMask & ONE_BIT_MASK)) {
+    for (int i = 0; i < FACES_PER_CUBE; i++, occludedMask >>= 1) {
+      if (!bool(occludedMask & ONE_BIT_MASK)) {
         uint instance_no = atomicAdd(drawIndirect[INSTANCE_COUNT_INDEX], 1);
 
         // Prepare the information needed for rendering

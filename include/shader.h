@@ -9,7 +9,7 @@
 #define SHADER_PATH(name) ("shaders/" name ".glsl")
 #define VERTEX_SHADER SHADER_PATH("vertex")
 #define FRAGMENT_SHADER SHADER_PATH("fragment")
-#define HIDDEN_CELL_COMPUTE_SHADER SHADER_PATH("hidden")
+#define OCCLUSION_COMPUTE_SHADER SHADER_PATH("occlusion")
 #define FRUSTUM_COMPUTE_SHADER SHADER_PATH("frustum")
 #define BITONIC_SORT_COMPUTE_SHADER SHADER_PATH("sort")
 
