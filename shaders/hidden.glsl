@@ -1,6 +1,6 @@
 #version 450 core
 
-layout(local_size_x = 10, local_size_y = 10, local_size_z = 10) in;
+layout(local_size_x = 16, local_size_y = 8, local_size_z = 8) in;
 layout(std430, binding = 0) buffer RenderInfo { uint renderInfo[]; };
 layout(std430, binding = 1) buffer HiddenCells { uint hiddenCells[]; };
 
