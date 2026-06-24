@@ -6,8 +6,8 @@ struct InstanceData {
 };
 
 // Sorting is 1D work (1 thread/comparison).
-// 256 is a good choice as it is a moderately large power of two.
-layout(local_size_x = 256) in;
+// 1024 is the maximum permissible workgroup size.
+layout(local_size_x = 1024) in;
 layout(std430, binding = 2) buffer InstanceBuffer {
   InstanceData instanceBuffer[];
 };
