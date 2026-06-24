@@ -9,7 +9,6 @@
 #define NEAR_PLANE_UNIFORM "uNear"
 #define FAR_PLANE_UNIFORM "uFar"
 #define VIEW_DIR_UNIFORM "uViewDir"
-#define OPACITY_UNIFORM "uOpacity"
 
 // Location identifiers of the compute shader's uniform variables
 static GLint left_plane_loc;

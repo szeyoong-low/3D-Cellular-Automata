@@ -4,6 +4,8 @@
 #include <cglm/cglm.h>
 #include <glad/glad.h>
 
+#define OPACITY_UNIFORM "uOpacity"
+
 // This module performs the frustum culling optimisation.
 // The view frustum is the 6-sided volume the camera can see.
 // Any cell outside it gets clipped by the GPU anyway, but we skip rendering

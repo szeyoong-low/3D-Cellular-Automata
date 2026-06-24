@@ -38,6 +38,7 @@ uniform uint uWidth;
 uniform uint uHeight;
 uniform uint uDepth;
 
+uniform bool uOpacity;
 uniform bool uNoWalls;
 
 const uint opacityFloor = 20; // Below which, a cell is considered transparent
@@ -58,14 +59,17 @@ bool check_hidden(uint selfIndex, uint otherX, uint otherY, uint otherZ) {
   // 1. Faces at the surface of a cluster of cubes should be rendered
   //    unconditionally
   return (otherAlpha >= opacityFloor) &&
-         // 2. A boundary between two cubes of the same packed colour should be
-         //    culled unconditionally
-         ((uNoWalls && (renderInfo[selfIndex] == renderInfo[otherIndex])) ||
-          // 3. A boundary between two cubes of different packed colours should
-          //    be rendered if and only if the other cube is at or below the
-          //    opacity ceiling. If both cells are below the opacity ceiling,
-          //    the back face will be culled later on.
-          otherAlpha > opacityCeiling);
+         // 2. If opacity is disabled, we cull all internal faces.
+         //    Otherwise, we check them below.
+         (!uOpacity ||
+          // 3. A boundary between two cubes of the same packed colour should be
+          //    culled unconditionally
+          ((uNoWalls && (renderInfo[selfIndex] == renderInfo[otherIndex])) ||
+           // 4. A boundary between two cubes of different packed colours should
+           //    be rendered if and only if the other cube is at or below the
+           //    opacity ceiling. If both cells are below the opacity ceiling,
+           //    the back face will be culled later on.
+           otherAlpha > opacityCeiling));
 }
 
 void main() {
