@@ -98,3 +98,4 @@ Our renderer allows users to see the simulation up close by scrolling in and dra
 - [The Book of Shaders - Patricio Gonzalez Vivo, Jen Lowe](https://thebookofshaders.com/)
 - [Crafting a Clean, Maintainable, and Understandable Makefile for a C Project - Luca Cavallin](https://www.lucavallin.com/blog/crafting-clean-maintainable-understandable-makefile-for-c-project)
 - [How to Structure C Projects: These Best Practices Worked for Me - Luca Cavallin](https://www.lucavallin.com/blog/how-to-structure-c-projects-my-experience-best-practices)
+- [Mastering Thread Calculations in WebGPU Compute Shaders: Workgroup Size, Count, and Thread Identification](https://medium.com/@josh.sideris/mastering-thread-calculations-in-webgpu-workgroup-size-count-and-thread-identification-6b44a87a4764)
