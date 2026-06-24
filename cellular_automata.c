@@ -170,9 +170,7 @@ int main(int argc, char **argv) {
 
   double last_step_time = glfwGetTime(); // seconds as a double since glfwInit()
   glUseProgram(hidden_cell_culling);
-  glDispatchCompute(NUM_WORKERS(sim_width, CULLING_LOCAL_SIZE_X),
-                    NUM_WORKERS(sim_height, CULLING_LOCAL_SIZE_Y),
-                    NUM_WORKERS(sim_depth, CULLING_LOCAL_SIZE_Z));
+  DISPATCH_CULLING_COMPUTE(sim_width, sim_height, sim_depth)
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   // store to calculate the frame rate
@@ -200,9 +198,7 @@ int main(int argc, char **argv) {
                            sim_render_info(sim));
 
       glUseProgram(hidden_cell_culling);
-      glDispatchCompute(NUM_WORKERS(sim_width, CULLING_LOCAL_SIZE_X),
-                        NUM_WORKERS(sim_height, CULLING_LOCAL_SIZE_Y),
-                        NUM_WORKERS(sim_depth, CULLING_LOCAL_SIZE_Z));
+      DISPATCH_CULLING_COMPUTE(sim_width, sim_height, sim_depth)
       // Ensures writes to the hidden_cells SSBO are complete and visible to the
       // next compute shader that needs to read them
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -227,9 +223,7 @@ int main(int argc, char **argv) {
     glm_mat4_mul(proj, view, view_proj);
     glUseProgram(frustum_culling);
     frustum_extract(view_proj, eye);
-    glDispatchCompute(NUM_WORKERS(sim_width, CULLING_LOCAL_SIZE_X),
-                      NUM_WORKERS(sim_height, CULLING_LOCAL_SIZE_Y),
-                      NUM_WORKERS(sim_depth, CULLING_LOCAL_SIZE_Z));
+    DISPATCH_CULLING_COMPUTE(sim_width, sim_height, sim_depth)
 
     // The GPU maintains two buffers of the same pixel dimensions as your
     // window:
