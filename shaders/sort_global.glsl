@@ -1,5 +1,7 @@
 #version 450 core
 
+// Handles case where partners are in different workgroups.
+
 struct InstanceData {
   ivec3 offset;
   uint packedColour;

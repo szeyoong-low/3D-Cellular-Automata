@@ -152,16 +152,25 @@ int main(int argc, char **argv) {
                        (opacity) ? sim_size_padded : sim_size);
   draw_indirect_buffer_init(&draw_indirect_buffer);
 
-  GLuint bitonic_sort;
-  GLint sort_block_loc, sort_step_loc;
+  GLuint sort_global, sort_local;
+  GLint sort_global_block_loc, sort_global_step_loc, sort_local_block_loc,
+      sort_local_step_loc;
 
   if (opacity) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    bitonic_sort = shader_build_program(
-        (ShaderDef[]){{GL_COMPUTE_SHADER, BITONIC_SORT_COMPUTE_SHADER}}, 1);
-    sort_block_loc = glGetUniformLocation(bitonic_sort, SORT_BLOCK_UNIFORM);
-    sort_step_loc = glGetUniformLocation(bitonic_sort, SORT_STEP_UNIFORM);
+
+    sort_global = shader_build_program(
+        (ShaderDef[]){{GL_COMPUTE_SHADER, SORT_GLOBAL_COMPUTE_SHADER}}, 1);
+    sort_global_block_loc =
+        glGetUniformLocation(sort_global, SORT_BLOCK_UNIFORM);
+    sort_global_step_loc = glGetUniformLocation(sort_global, SORT_STEP_UNIFORM);
+
+    sort_local = shader_build_program(
+        (ShaderDef[]){{GL_COMPUTE_SHADER, SORT_LOCAL_COMPUTE_SHADER}}, 1);
+    sort_local_block_loc = glGetUniformLocation(sort_local, SORT_BLOCK_UNIFORM);
+    sort_local_step_loc = glGetUniformLocation(sort_local, SORT_STEP_UNIFORM);
+
     sort_key_buffer_init(&sort_key_buffer, sim_size_padded);
   } else {
     glEnable(GL_DEPTH_TEST);
@@ -244,15 +253,26 @@ int main(int argc, char **argv) {
 
       // Sort instances back to front to address inconsistent alpha blending due
       // to z-fighting
-      glUseProgram(bitonic_sort);
       for (int i = 1; i <= sort_num_passes; i++) {
-        glUniform1ui(sort_block_loc, POWER_TWO(i));
+        const uint block_size = POWER_TWO(i);
 
         for (int j = i - 1; j >= 0; j--) {
-          glUniform1ui(sort_step_loc, POWER_TWO(j));
-          glDispatchCompute(NUM_WORKERS(sim_size_padded, SORTING_LOCAL_SIZE_X),
+          const uint step_size = POWER_TWO(j);
+          // Swap partner is within shared memory
+          const bool local = step_size <= SORTING_LOCAL_MAX_STEP;
+
+          glUseProgram(local ? sort_local : sort_global);
+          glUniform1ui(local ? sort_local_block_loc : sort_global_block_loc,
+                       block_size);
+          glUniform1ui(local ? sort_local_step_loc : sort_global_step_loc,
+                       step_size);
+          glDispatchCompute(NUM_WORKERS(sim_size_padded, SORTING_LOCAL_SIZE),
                             SORTING_NUM_WORKERS_Y, SORTING_NUM_WORKERS_Z);
+          // This is a global memory barrier
           glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+          if (local) {
+            break; // All smaller step sizes taken care of
+          }
         }
       }
     }
@@ -307,7 +327,8 @@ int main(int argc, char **argv) {
   glDeleteBuffers(1, &instance_buffer);
   glDeleteBuffers(1, &draw_indirect_buffer);
   if (opacity) {
-    glDeleteProgram(bitonic_sort);
+    glDeleteProgram(sort_global);
+    glDeleteProgram(sort_local);
     glDeleteBuffers(1, &sort_key_buffer);
   }
   DESTROY_AND_EXIT(window, true)
