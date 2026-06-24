@@ -23,6 +23,23 @@
 #define SORT_BLOCK_UNIFORM "uBlockSize"
 #define SORT_STEP_UNIFORM "uStepSize"
 
+#define NUM_WORKERS(dimension, local_size)                                     \
+  ((uint)ceil((float)dimension / (float)local_size))
+
+#define CULLING_LOCAL_SIZE_X 10
+#define CULLING_LOCAL_SIZE_Y 10
+#define CULLING_LOCAL_SIZE_Z 10
+
+#define DISPATCH_CULLING_COMPUTE(width, height, depth)                         \
+  glDispatchCompute(NUM_WORKERS(width, CULLING_LOCAL_SIZE_X),                  \
+                    NUM_WORKERS(height, CULLING_LOCAL_SIZE_Y),                 \
+                    NUM_WORKERS(depth, CULLING_LOCAL_SIZE_Z));
+
+#define SORTING_LOCAL_SIZE 1024
+#define SORTING_LOCAL_MAX_STEP (SORTING_LOCAL_SIZE / 2)
+#define SORTING_NUM_WORKERS_Y 1
+#define SORTING_NUM_WORKERS_Z 1
+
 typedef struct {
   GLenum type; // GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, etc.
   const char *path;
