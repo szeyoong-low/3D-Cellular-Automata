@@ -8,20 +8,20 @@
 #define WINDOW_HEIGHT 600 // Fallback only
 
 #define NUM_WORKERS(dimension, local_size)                                     \
-  ((uint)ceil((float)dimension / local_size))
+  ((uint)ceil((float)dimension / (float)local_size))
 
 #define POWER_TWO(exp) ((uint)pow(2.0L, (double)exp))
 
-#define CULLING_LOCAL_SIZE_X 10.0F
-#define CULLING_LOCAL_SIZE_Y 10.0F
-#define CULLING_LOCAL_SIZE_Z 10.0F
+#define CULLING_LOCAL_SIZE_X 10
+#define CULLING_LOCAL_SIZE_Y 10
+#define CULLING_LOCAL_SIZE_Z 10
 
 #define DISPATCH_CULLING_COMPUTE(width, height, depth)                         \
   glDispatchCompute(NUM_WORKERS(width, CULLING_LOCAL_SIZE_X),                  \
                     NUM_WORKERS(height, CULLING_LOCAL_SIZE_Y),                 \
                     NUM_WORKERS(depth, CULLING_LOCAL_SIZE_Z));
 
-#define SORTING_LOCAL_SIZE_X 1024.0F
+#define SORTING_LOCAL_SIZE_X 1024
 #define SORTING_NUM_WORKERS_Y 1
 #define SORTING_NUM_WORKERS_Z 1
 
