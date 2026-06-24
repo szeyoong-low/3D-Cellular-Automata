@@ -47,15 +47,15 @@ void main() {
     // stage.
     const bool ascending = (self & uBlockSize) == 0;
 
-    const float sortKeySelf = sortKeys[self];
-    const float sortKeyPartner = sortKeys[partner];
+    const float selfSortKey = sortKeys[self];
+    const float partnerSortKey = sortKeys[partner];
 
     // Since we want descending order (farthest instance first),
     // we treat ascending blocks as descending, and vice versa.
-    if (ascending == (sortKeySelf < sortKeyPartner)) {
+    if (ascending == (selfSortKey < partnerSortKey)) {
       // swap both keys and instance data
-      sortKeys[self] = sortKeyPartner;
-      sortKeys[partner] = sortKeySelf;
+      sortKeys[self] = partnerSortKey;
+      sortKeys[partner] = selfSortKey;
 
       InstanceData temp = instanceBuffer[self];
       instanceBuffer[self] = instanceBuffer[partner];
