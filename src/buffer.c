@@ -2,8 +2,6 @@
 #include "graphics_utility.h"
 #include "mesh.h"
 
-#define POSITION_NUM_COMPONENTS 3
-
 // Vertex buffer object (VBO): a region of GPU memory holding raw vertex bytes
 inline void attribute_buffer_init(GLuint *attribute_buffer) {
   glGenVertexArrays(1, attribute_buffer); // Allocate space in VRAM
