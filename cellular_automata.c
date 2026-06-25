@@ -133,8 +133,7 @@ int main(int argc, char **argv) {
 
   // VRAM buffer initialisation
   GLuint attribute_buffer, vertex_buffer, element_buffer, render_info_buffer,
-      occlusion_buffer, instance_buffer, draw_indirect_buffer,
-      sort_key_buffer;
+      occlusion_buffer, instance_buffer, draw_indirect_buffer, sort_key_buffer;
 
   attribute_buffer_init(&attribute_buffer);
   vertex_buffer_init(&vertex_buffer);

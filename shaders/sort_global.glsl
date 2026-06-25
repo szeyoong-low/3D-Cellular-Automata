@@ -5,7 +5,8 @@
 #define INSTANCE_SSBO_BINDING 2
 #define SORT_KEY_SSBO_BINDING 4
 
-#define SORTING_LOCAL_SIZE 1024 // 1024 is the maximum permissible workgroup size.
+#define SORTING_LOCAL_SIZE                                                     \
+  1024 // 1024 is the maximum permissible workgroup size.
 
 uniform uint uBlockSize;
 uniform uint uStepSize;

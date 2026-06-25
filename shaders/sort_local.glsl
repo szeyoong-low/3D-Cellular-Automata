@@ -2,8 +2,14 @@
 
 // Handles comparison steps where partners are in the same workgroup
 
+#define INSTANCE_SSBO_BINDING 2
+#define SORT_KEY_SSBO_BINDING 4
+
 #define MIN_STEP 1
 #define SORTING_LOCAL_SIZE 1024
+
+uniform uint uBlockSize;
+uniform uint uStepSize;
 
 struct InstanceData {
   ivec3 offset;
@@ -11,16 +17,15 @@ struct InstanceData {
 };
 
 layout(local_size_x = SORTING_LOCAL_SIZE) in;
-layout(std430, binding = 2) buffer InstanceBuffer {
+layout(std430, binding = INSTANCE_SSBO_BINDING) buffer InstanceBuffer {
   InstanceData instanceBuffer[];
 };
-layout(std430, binding = 4) buffer SortKeys { float sortKeys[]; };
+layout(std430, binding = SORT_KEY_SSBO_BINDING) buffer SortKeys {
+  float sortKeys[];
+};
 
 shared InstanceData localInstances[SORTING_LOCAL_SIZE];
 shared float localKeys[SORTING_LOCAL_SIZE];
-
-uniform uint uBlockSize;
-uniform uint uStepSize;
 
 void main() {
   // Get each thread to load 1 element from global memory
