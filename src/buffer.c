@@ -111,12 +111,3 @@ inline void draw_indirect_buffer_init(GLuint *draw_indirect_buffer) {
   glNamedBufferData(*draw_indirect_buffer, sizeof(DrawElementsIndirectCommand),
                     &draw_indirect_cmd, GL_DYNAMIC_DRAW);
 }
-
-inline void sort_key_buffer_init(GLuint *sort_key_buffer, size_t size) {
-  glGenBuffers(1, sort_key_buffer);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, SORT_KEY_SSBO_BINDING,
-                   *sort_key_buffer);
-  glNamedBufferData(*sort_key_buffer,
-                    (GLsizeiptr)(sizeof(float) * next_power_two(size)), NULL,
-                    GL_DYNAMIC_DRAW);
-}

@@ -99,10 +99,6 @@ int main(int argc, char **argv) {
   glfwGetFramebufferSize(window, &fb_width, &fb_height);
   build_framebuffer(blending_framebuffer, &accum_texture, &reveal_texture, fb_width, fb_height);
 
-  // For bitonic sorting
-  const float neg_inf = -HUGE_VALF;
-  const ulong sim_size_padded = next_power_two(sim_size);
-  const int sort_num_passes = (int)log2((double)sim_size_padded);
   // Radius of the smallest sphere that encloses the grid, from its centre.
   // Used to size the initial camera distance, FOV, and far clipping plane.
   const float bounding_radius =
@@ -168,34 +164,18 @@ int main(int argc, char **argv) {
 
   // VRAM buffer initialisation
   GLuint attribute_buffer, vertex_buffer, element_buffer, render_info_buffer,
-      occlusion_buffer, instance_buffer, draw_indirect_buffer, sort_key_buffer;
+      occlusion_buffer, instance_buffer, draw_indirect_buffer;
 
   attribute_buffer_init(&attribute_buffer);
   vertex_buffer_init(&vertex_buffer);
   element_buffer_init(&element_buffer);
   render_info_buffer_init(&render_info_buffer, sim_size, sim_render_info(sim));
   occlusion_buffer_init(&occlusion_buffer, sim_size);
-  instance_buffer_init(&instance_buffer,
-                       (opacity) ? sim_size_padded : sim_size);
+  instance_buffer_init(&instance_buffer, sim_size);
   draw_indirect_buffer_init(&draw_indirect_buffer);
 
-  GLuint sort_global, sort_local;
-  GLint sort_global_block_loc, sort_global_step_loc, sort_local_block_loc,
-      sort_local_step_loc;
-
   if (opacity) {
-    sort_global = shader_build_program(
-        (ShaderDef[]){{GL_COMPUTE_SHADER, SORT_GLOBAL_COMPUTE_SHADER}}, 1);
-    sort_global_block_loc =
-        glGetUniformLocation(sort_global, SORT_BLOCK_UNIFORM);
-    sort_global_step_loc = glGetUniformLocation(sort_global, SORT_STEP_UNIFORM);
-
-    sort_local = shader_build_program(
-        (ShaderDef[]){{GL_COMPUTE_SHADER, SORT_LOCAL_COMPUTE_SHADER}}, 1);
-    sort_local_block_loc = glGetUniformLocation(sort_local, SORT_BLOCK_UNIFORM);
-    sort_local_step_loc = glGetUniformLocation(sort_local, SORT_STEP_UNIFORM);
-
-    sort_key_buffer_init(&sort_key_buffer, sim_size_padded);
+    // Placeholder
   } else {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -250,11 +230,6 @@ int main(int argc, char **argv) {
     camera_update_proj(fb_width, fb_height, bounding_radius, camera.radius,
                        proj);
 
-    if (opacity) {
-      glClearNamedBufferData(sort_key_buffer, GL_R32F, GL_RED, GL_FLOAT,
-                             &neg_inf);
-    }
-
     // Frustum culling
     glm_mat4_mul(proj, view, view_proj);
     glUseProgram(frustum_culling);
@@ -263,35 +238,6 @@ int main(int argc, char **argv) {
                              sim_depth_padded)
 
     if (opacity) {
-      // Ensure that the frustum culler has completed its writes before reads
-      // by the sorting algorithm
-      glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-
-      // Sort instances back to front to address inconsistent alpha blending due
-      // to z-fighting
-      for (int i = 1; i <= sort_num_passes; i++) {
-        const uint block_size = POWER_TWO(i);
-
-        for (int j = i - 1; j >= 0; j--) {
-          const uint step_size = POWER_TWO(j);
-          // Swap partner is within shared memory
-          const bool local = step_size <= SORTING_LOCAL_MAX_STEP;
-
-          glUseProgram(local ? sort_local : sort_global);
-          glUniform1ui(local ? sort_local_block_loc : sort_global_block_loc,
-                       block_size);
-          glUniform1ui(local ? sort_local_step_loc : sort_global_step_loc,
-                       step_size);
-          glDispatchCompute(NUM_WORKERS(sim_size_padded, SORTING_LOCAL_SIZE),
-                            SORTING_NUM_WORKERS_Y, SORTING_NUM_WORKERS_Z);
-          // This is a global memory barrier
-          glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-          if (local) {
-            break; // All smaller step sizes taken care of
-          }
-        }
-      }
-
       glBindFramebuffer(GL_FRAMEBUFFER, blending_framebuffer);
       glEnable(GL_BLEND);
       // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -381,9 +327,7 @@ int main(int argc, char **argv) {
   glDeleteTextures(1, &accum_texture);
   glDeleteTextures(1, &reveal_texture);
   if (opacity) {
-    glDeleteProgram(sort_global);
-    glDeleteProgram(sort_local);
-    glDeleteBuffers(1, &sort_key_buffer);
+    // Placeholder
   }
   DESTROY_AND_EXIT(window, true)
 }

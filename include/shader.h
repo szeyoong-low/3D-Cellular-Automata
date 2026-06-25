@@ -11,8 +11,6 @@
 #define FRAGMENT_SHADER SHADER_PATH("fragment")
 #define OCCLUSION_COMPUTE_SHADER SHADER_PATH("occlusion")
 #define FRUSTUM_COMPUTE_SHADER SHADER_PATH("frustum")
-#define SORT_GLOBAL_COMPUTE_SHADER SHADER_PATH("sort_global")
-#define SORT_LOCAL_COMPUTE_SHADER SHADER_PATH("sort_local")
 #define POST_PROCESS_VERTEX_SHADER SHADER_PATH("post_process_vertex")
 #define POST_PROCESS_FRAGMENT_SHADER SHADER_PATH("post_process_fragment")
 
@@ -23,8 +21,6 @@
 #define WIDTH_UNIFORM "uWidth"
 #define HEIGHT_UNIFORM "uHeight"
 #define DEPTH_UNIFORM "uDepth"
-#define SORT_BLOCK_UNIFORM "uBlockSize"
-#define SORT_STEP_UNIFORM "uStepSize"
 #define ACCUM_TEXTURE_UNIFORM "uAccumTexture"
 #define REVEAL_TEXTURE_UNIFORM "uRevealTexture"
 #define OPACITY_UNIFORM "uOpacity"
@@ -40,11 +36,6 @@
   glDispatchCompute(NUM_WORKERS(width, CULLING_LOCAL_SIZE_X),                  \
                     NUM_WORKERS(height, CULLING_LOCAL_SIZE_Y),                 \
                     NUM_WORKERS(depth, CULLING_LOCAL_SIZE_Z));
-
-#define SORTING_LOCAL_SIZE 1024
-#define SORTING_LOCAL_MAX_STEP (SORTING_LOCAL_SIZE / 2)
-#define SORTING_NUM_WORKERS_Y 1
-#define SORTING_NUM_WORKERS_Z 1
 
 #define WINDOW_FRAMEBUFFER_BINDING 0
 // One framebuffer can contain multiple buffer attachments

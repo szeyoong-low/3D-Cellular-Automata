@@ -32,6 +32,5 @@ extern void render_info_buffer_init(GLuint *render_info_buffer, size_t size,
 extern void occlusion_buffer_init(GLuint *occlusion_buffer, size_t size);
 extern void instance_buffer_init(GLuint *instance_buffer, size_t size);
 extern void draw_indirect_buffer_init(GLuint *draw_indirect_buffer);
-extern void sort_key_buffer_init(GLuint *sort_key_buffer, size_t size);
 
 #endif
