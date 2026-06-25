@@ -175,7 +175,8 @@ int main(int argc, char **argv) {
 
   double last_step_time = glfwGetTime(); // seconds as a double since glfwInit()
   glUseProgram(occlusion_culling);
-  DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded, sim_depth_padded)
+  DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded,
+                           sim_depth_padded)
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   // store to calculate the frame rate
@@ -203,7 +204,8 @@ int main(int argc, char **argv) {
                            sim_render_info(sim));
 
       glUseProgram(occlusion_culling);
-      DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded, sim_depth_padded)
+      DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded,
+                               sim_depth_padded)
       // Ensures writes to the occlusion SSBO are complete and visible to the
       // next compute shader that needs to read them
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -228,7 +230,8 @@ int main(int argc, char **argv) {
     glm_mat4_mul(proj, view, view_proj);
     glUseProgram(frustum_culling);
     frustum_extract(view_proj, eye);
-    DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded, sim_depth_padded)
+    DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded,
+                             sim_depth_padded)
 
     // The GPU maintains two buffers of the same pixel dimensions as your
     // window:
