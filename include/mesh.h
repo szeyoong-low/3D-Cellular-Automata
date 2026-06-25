@@ -17,6 +17,7 @@
 // This counts the number of vertex references needed.
 // 6 faces x 2 triangles x 3 vertices = 36 vertices
 #define CUBE_VERTEX_COUNT 36
+#define POSITION_NUM_COMPONENTS 3
 
 // (x, y, z, ni)
 // first 3 are Cartesian coordinates for position, last 1 is an identifier for
