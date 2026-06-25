@@ -124,8 +124,10 @@ static float dist_arc(float px, float py, float cx, float cy, float r, float a0,
 // Shortest in-plane distance from (x,y) to the hook+stem centreline.
 static float dist_to_centreline_2d(float x, float y) {
   float d = dist_arc(x, y, HOOK_CX, HOOK_CY, HOOK_R, HOOK_A0, HOOK_A1);
-  d = fminf(d, dist_segment(x, y, STEM_TOP_X, STEM_TOP_Y, STEM_MID_X, STEM_MID_Y));
-  d = fminf(d, dist_segment(x, y, STEM_MID_X, STEM_MID_Y, STEM_BOT_X, STEM_BOT_Y));
+  d = fminf(d,
+            dist_segment(x, y, STEM_TOP_X, STEM_TOP_Y, STEM_MID_X, STEM_MID_Y));
+  d = fminf(d,
+            dist_segment(x, y, STEM_MID_X, STEM_MID_Y, STEM_BOT_X, STEM_BOT_Y));
   return d;
 }
 
