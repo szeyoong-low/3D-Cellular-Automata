@@ -94,10 +94,31 @@ int main(int argc, char **argv) {
   int fb_width, fb_height;
 
   // For weighted-blended order-independent transparency
-  GLuint blending_framebuffer, accum_texture, reveal_texture;
-  glCreateFramebuffers(1, &blending_framebuffer);
-  glfwGetFramebufferSize(window, &fb_width, &fb_height);
-  build_framebuffer(blending_framebuffer, &accum_texture, &reveal_texture, fb_width, fb_height);
+  GLuint blending_framebuffer = 0;
+  GLuint accum_texture, reveal_texture;
+  GLuint post_processing = 0;
+
+  if (opacity) {
+    glEnable(GL_BLEND);
+    glCreateFramebuffers(1, &blending_framebuffer);
+    glfwGetFramebufferSize(window, &fb_width, &fb_height);
+    build_framebuffer(blending_framebuffer, &accum_texture, &reveal_texture,
+                      fb_width, fb_height);
+
+    post_processing = shader_build_program(
+        (ShaderDef[]){{GL_VERTEX_SHADER, POST_PROCESS_VERTEX_SHADER},
+                      {GL_FRAGMENT_SHADER, POST_PROCESS_FRAGMENT_SHADER}},
+        2);
+
+    shader_upload_integer(post_processing, ACCUM_TEXTURE_UNIFORM,
+                          ACCUM_BINDING_TARGET);
+
+    shader_upload_integer(post_processing, REVEAL_TEXTURE_UNIFORM,
+                          REVEAL_BINDING_TARGET);
+  } else {
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+  }
 
   // Radius of the smallest sphere that encloses the grid, from its centre.
   // Used to size the initial camera distance, FOV, and far clipping plane.
@@ -137,11 +158,6 @@ int main(int argc, char **argv) {
 
   frustum_init(frustum_culling, opacity);
 
-  const GLuint post_processing = shader_build_program(
-      (ShaderDef[]){{GL_VERTEX_SHADER, POST_PROCESS_VERTEX_SHADER},
-                    {GL_FRAGMENT_SHADER, POST_PROCESS_FRAGMENT_SHADER}},
-      2);
-
   // Cache uniform locations so that unnecessary driver round-trips are not done
   const GLint view_proj_loc =
       glGetUniformLocation(render_pipeline, VIEW_PROJ_UNIFORM);
@@ -157,12 +173,6 @@ int main(int argc, char **argv) {
                              sim_depth);
   shader_upload_dim_uniforms(frustum_culling, sim_width, sim_height, sim_depth);
 
-  shader_upload_integer(post_processing, ACCUM_TEXTURE_UNIFORM,
-                        ACCUM_BINDING_TARGET);
-
-  shader_upload_integer(post_processing, REVEAL_TEXTURE_UNIFORM,
-                        REVEAL_BINDING_TARGET);
-
   // VRAM buffer initialisation
   GLuint attribute_buffer, vertex_buffer, element_buffer, render_info_buffer,
       occlusion_buffer, instance_buffer, draw_indirect_buffer;
@@ -174,13 +184,6 @@ int main(int argc, char **argv) {
   occlusion_buffer_init(&occlusion_buffer, sim_size);
   instance_buffer_init(&instance_buffer, sim_size);
   draw_indirect_buffer_init(&draw_indirect_buffer);
-
-  if (opacity) {
-    // Placeholder
-  } else {
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-  }
 
   double last_step_time = glfwGetTime(); // seconds as a double since glfwInit()
   glUseProgram(occlusion_culling);
@@ -239,9 +242,8 @@ int main(int argc, char **argv) {
                              sim_depth_padded)
 
     if (opacity) {
+      // For drawing
       glBindFramebuffer(GL_FRAMEBUFFER, blending_framebuffer);
-      glEnable(GL_BLEND);
-      // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       glClearBufferfv(GL_COLOR, ACCUM_BINDING_TARGET, ACCUM_CLEAR);
       glClearBufferfv(GL_COLOR, REVEAL_BINDING_TARGET, REVEAL_CLEAR);
       glBlendFunci(ACCUM_BINDING_TARGET, GL_ONE, GL_ONE);
@@ -278,6 +280,7 @@ int main(int argc, char **argv) {
     glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_BYTE, 0);
 
     if (opacity) {
+      // For final rendering
       glBindFramebuffer(GL_FRAMEBUFFER, WINDOW_FRAMEBUFFER_BINDING);
       // Clear the framebuffer rendered into
       glClear(GL_COLOR_BUFFER_BIT);
@@ -324,11 +327,10 @@ int main(int argc, char **argv) {
   glDeleteBuffers(1, &occlusion_buffer);
   glDeleteBuffers(1, &instance_buffer);
   glDeleteBuffers(1, &draw_indirect_buffer);
-  glDeleteFramebuffers(1, &blending_framebuffer);
-  glDeleteTextures(1, &accum_texture);
-  glDeleteTextures(1, &reveal_texture);
   if (opacity) {
-    // Placeholder
+    glDeleteFramebuffers(1, &blending_framebuffer);
+    glDeleteTextures(1, &accum_texture);
+    glDeleteTextures(1, &reveal_texture);
   }
   DESTROY_AND_EXIT(window, true)
 }

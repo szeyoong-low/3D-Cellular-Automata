@@ -22,7 +22,7 @@ inline void framebuffer_size_callback(GLFWwindow *window, int width,
   *window_user_pointer->fb_height = height;
   glViewport(0, 0, width, height);
 
-  if (width == 0 || height == 0) {
+  if (!window_user_pointer->opacity || width == 0 || height == 0) {
     return;
   }
 
