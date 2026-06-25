@@ -101,5 +101,5 @@ Our renderer allows users to see the simulation up close by scrolling in and dra
 -[What is WebGPU? - Suboptimal engineer](https://www.youtube.com/watch?v=oIur9NATg-I)
 - [Intro to Graphics Programming (What it is and where to start) - the lemon](https://www.youtube.com/watch?v=Jw-g_Zrz4Ys)
 - [How Does Lighting Work in Games? (a brief history of Phong reflection) - Undeniable Dilemma](https://www.youtube.com/watch?v=oEwhDKB0BnQ)
-- [Creating My Onw 3D Graphics Engine - Inkbox](https://www.youtube.com/watch?v=OJoZSRnU0is&t=1189s)
+- [Creating My Own 3D Graphics Engine - Inkbox](https://www.youtube.com/watch?v=OJoZSRnU0is&t=1189s)
 - [The PERFECT voxel rendering pipeline (and online demo) [Voxel Devlog #7] - Douglas](https://www.youtube.com/watch?v=IFUj53VwYvU&t=741s)
