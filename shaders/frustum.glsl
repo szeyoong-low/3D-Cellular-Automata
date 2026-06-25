@@ -1,10 +1,5 @@
 #version 450 core
 
-const uint max_layers = 5;
-
-// Below this, a face is edge-on (around 6 degrees) and not meaningfully visible
-const float face_visibility_threshold = 0.1;
-
 struct InstanceData {
   ivec3 offset;
   uint packedColour;
@@ -56,40 +51,6 @@ void main() {
       hiddenCells[INDEX(x, y, z, uWidth, uHeight)] == 1) {
     return;
   }
-
-  // Disabled pending investigation into unintended effects
-  // Occlusion: cull cells buried maxLayers deep behind all visible grid faces
-  //   bool allDeep = true;
-  //   bool anyFaceVisible = false;
-  //   uint coordinates[3] = uint[3](x, y, z);
-  //   uint dimensions[3] = uint[3](uWidth, uHeight, uDepth);
-  //
-  //   for (int i = 0; i < 3; i++) {
-  //     // uViewDir is a normalised direction vector from the camera toward
-  //     // the grid centre
-  //     // If its component along axis i is near zero, the camera is looking
-  //     // almost parallel to that face, making it edge-on and barely visible.
-  //     if (abs(uViewDir[i]) < face_visibility_threshold) {
-  //       continue;
-  //     }
-  //
-  //     anyFaceVisible = true;
-  //
-  //     // Facing positive end of axis: camera sees lowest index face
-  //     // Facing negative end of axis: camera sees highest index face
-  //     uint depth = (uViewDir[i] > 0.0) ? coordinates[i]
-  //                                      : (dimensions[i] - 1u -
-  //                                      coordinates[i]);
-  //
-  //     if (depth <= max_layers) {
-  //       allDeep = false;
-  //       break;
-  //     }
-  //   }
-  //
-  //   if (anyFaceVisible && allDeep) {
-  //     return;
-  //   }
 
   // Calculate offset
   // Centre the grid at the world origin so the orbit camera target
