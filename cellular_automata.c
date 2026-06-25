@@ -3,6 +3,7 @@
 #include "simulate.h"
 #include <dlfcn.h>
 #include <glad/glad.h>
+#include <sys/types.h>
 #include <time.h>
 // glad must precede GLFW as it defines GL types first
 // The OpenGL driver (Nvidia/AMD/Mesa) ships on your machine, and your program
@@ -28,8 +29,11 @@ int main(int argc, char **argv) {
   void *handle;
   CellConfig cell_config = load_cell_config(args.cell_path, &handle);
   const uint sim_width = args.width;
+  const uint sim_width_padded = (uint)next_power_two(sim_width);
   const uint sim_height = args.height;
+  const uint sim_height_padded = (uint)next_power_two(sim_height);
   const uint sim_depth = args.depth;
+  const uint sim_depth_padded = (uint)next_power_two(sim_depth);
   const size_t sim_size = sim_width * sim_height * sim_depth;
   const double step_time = args.steptime;
   const bool opacity = args.opacity;
@@ -171,7 +175,7 @@ int main(int argc, char **argv) {
 
   double last_step_time = glfwGetTime(); // seconds as a double since glfwInit()
   glUseProgram(occlusion_culling);
-  DISPATCH_CULLING_COMPUTE(sim_width, sim_height, sim_depth)
+  DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded, sim_depth_padded)
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   // store to calculate the frame rate
@@ -199,7 +203,7 @@ int main(int argc, char **argv) {
                            sim_render_info(sim));
 
       glUseProgram(occlusion_culling);
-      DISPATCH_CULLING_COMPUTE(sim_width, sim_height, sim_depth)
+      DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded, sim_depth_padded)
       // Ensures writes to the occlusion SSBO are complete and visible to the
       // next compute shader that needs to read them
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -224,7 +228,7 @@ int main(int argc, char **argv) {
     glm_mat4_mul(proj, view, view_proj);
     glUseProgram(frustum_culling);
     frustum_extract(view_proj, eye);
-    DISPATCH_CULLING_COMPUTE(sim_width, sim_height, sim_depth)
+    DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded, sim_depth_padded)
 
     // The GPU maintains two buffers of the same pixel dimensions as your
     // window:

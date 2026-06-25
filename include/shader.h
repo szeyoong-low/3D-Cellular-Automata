@@ -27,9 +27,9 @@
 #define NUM_WORKERS(dimension, local_size)                                     \
   ((uint)ceil((float)dimension / (float)local_size))
 
-#define CULLING_LOCAL_SIZE_X 10
-#define CULLING_LOCAL_SIZE_Y 10
-#define CULLING_LOCAL_SIZE_Z 10
+#define CULLING_LOCAL_SIZE_X 16
+#define CULLING_LOCAL_SIZE_Y 8
+#define CULLING_LOCAL_SIZE_Z 8
 
 #define DISPATCH_CULLING_COMPUTE(width, height, depth)                         \
   glDispatchCompute(NUM_WORKERS(width, CULLING_LOCAL_SIZE_X),                  \

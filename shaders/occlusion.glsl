@@ -3,9 +3,9 @@
 #define RENDER_INFO_SSBO_BINDING 0
 #define OCCLUSION_SSBO_BINDING 1
 
-#define CULLING_LOCAL_SIZE_X 10
-#define CULLING_LOCAL_SIZE_Y 10
-#define CULLING_LOCAL_SIZE_Z 10
+#define CULLING_LOCAL_SIZE_X 16
+#define CULLING_LOCAL_SIZE_Y 8
+#define CULLING_LOCAL_SIZE_Z 8
 
 // x is column, y is row, z is slice, w is uWidth, h is uHeight
 #define INDEX(x, y, z, w, h) ((x) + (w) * ((y) + (h) * (z)))

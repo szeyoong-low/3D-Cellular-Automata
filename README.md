@@ -103,3 +103,5 @@ Our renderer allows users to see the simulation up close by scrolling in and dra
 - [How Does Lighting Work in Games? (a brief history of Phong reflection) - Undeniable Dilemma](https://www.youtube.com/watch?v=oEwhDKB0BnQ)
 - [Creating My Own 3D Graphics Engine - Inkbox](https://www.youtube.com/watch?v=OJoZSRnU0is&t=1189s)
 - [The PERFECT voxel rendering pipeline (and online demo) [Voxel Devlog #7] - Douglas](https://www.youtube.com/watch?v=IFUj53VwYvU&t=741s)
+
+- [Mastering Thread Calculations in WebGPU Compute Shaders: Workgroup Size, Count, and Thread Identification](https://medium.com/@josh.sideris/mastering-thread-calculations-in-webgpu-workgroup-size-count-and-thread-identification-6b44a87a4764)
