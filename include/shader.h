@@ -13,6 +13,8 @@
 #define FRUSTUM_COMPUTE_SHADER SHADER_PATH("frustum")
 #define SORT_GLOBAL_COMPUTE_SHADER SHADER_PATH("sort_global")
 #define SORT_LOCAL_COMPUTE_SHADER SHADER_PATH("sort_local")
+#define POST_PROCESS_VERTEX_SHADER SHADER_PATH("post_process_vertex")
+#define POST_PROCESS_FRAGMENT_SHADER SHADER_PATH("post_process_fragment")
 
 #define VIEW_PROJ_UNIFORM "uViewProj"
 #define LIGHT_POS_UNIFORM "uLightPos"
@@ -23,6 +25,7 @@
 #define DEPTH_UNIFORM "uDepth"
 #define SORT_BLOCK_UNIFORM "uBlockSize"
 #define SORT_STEP_UNIFORM "uStepSize"
+#define TEXTURE_UNIFORM "uTexture"
 
 #define NUM_WORKERS(dimension, local_size)                                     \
   ((uint)ceil((float)dimension / (float)local_size))
@@ -62,5 +65,8 @@ extern void shader_upload_dim_uniforms(GLuint shader_prog, uint width,
 
 extern void shader_upload_lighting_uniforms(GLuint shader_prog, bool lighting,
                                             vec3 light_pos);
+
+extern void shader_upload_integer(GLuint shader_prog, const char *uniform,
+                                  int value);
 
 #endif

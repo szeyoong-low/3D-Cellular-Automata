@@ -21,7 +21,7 @@ inline void framebuffer_size_callback(GLFWwindow *window, int width,
   if (width == 0 || height == 0) {
     return;
   }
-  
+
   GLuint blending_framebuffer = window_user_pointer->framebuffer;
   GLuint *colour_texture = window_user_pointer->colour_texture;
 

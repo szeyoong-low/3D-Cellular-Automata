@@ -139,6 +139,11 @@ int main(int argc, char **argv) {
 
   frustum_init(frustum_culling, opacity);
 
+  const GLuint post_processing = shader_build_program(
+      (ShaderDef[]){{GL_VERTEX_SHADER, POST_PROCESS_VERTEX_SHADER},
+                    {GL_FRAGMENT_SHADER, POST_PROCESS_FRAGMENT_SHADER}},
+      2);
+
   // Cache uniform locations so that unnecessary driver round-trips are not done
   const GLint view_proj_loc =
       glGetUniformLocation(render_pipeline, VIEW_PROJ_UNIFORM);
@@ -151,6 +156,9 @@ int main(int argc, char **argv) {
   shader_upload_dim_uniforms(occlusion_culling, sim_width, sim_height,
                              sim_depth);
   shader_upload_dim_uniforms(frustum_culling, sim_width, sim_height, sim_depth);
+
+  shader_upload_integer(post_processing, TEXTURE_UNIFORM,
+                        FRAMEBUFFER_TEXTURE_UNIT);
 
   // VRAM buffer initialisation
   GLuint attribute_buffer, vertex_buffer, element_buffer, render_info_buffer,
@@ -170,9 +178,6 @@ int main(int argc, char **argv) {
       sort_local_step_loc;
 
   if (opacity) {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
     sort_global = shader_build_program(
         (ShaderDef[]){{GL_COMPUTE_SHADER, SORT_GLOBAL_COMPUTE_SHADER}}, 1);
     sort_global_block_loc =
@@ -282,6 +287,8 @@ int main(int argc, char **argv) {
       }
 
       glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
 
     // The GPU maintains two buffers of the same pixel dimensions as your
@@ -294,6 +301,8 @@ int main(int argc, char **argv) {
     // the previous frame.
     // - GL_COLOR_BUFFER_BIT — fill the colour buffer with the clear colour
     // - GL_DEPTH_BUFFER_BIT — fill the depth buffer with 1.0 everywhere
+    
+    // Clear the framebuffer drawn into
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // glDrawElementsIndirect works exactly like glDrawElementsInstanced,
@@ -313,12 +322,14 @@ int main(int argc, char **argv) {
 
     if (opacity) {
       glBindFramebuffer(GL_FRAMEBUFFER, WINDOW_FRAMEBUFFER_BINDING);
+      // Clear the framebuffer rendered into
       glClear(GL_COLOR_BUFFER_BIT);
-      // camera_update_proj already updates fb_width and fb_height
-      // drawFramebuffer is set to 0 (default - window)
-      glBlitNamedFramebuffer(framebuffer, WINDOW_FRAMEBUFFER_BINDING, 0, 0, fb_width, fb_height,
-                             0, 0, fb_width, fb_height, GL_COLOR_BUFFER_BIT,
-                             GL_NEAREST);
+      // Only copying is done here.
+      glDisable(GL_BLEND);
+      // resize callback already updates fb_width and fb_height
+      glUseProgram(post_processing);
+      glBindTextureUnit(FRAMEBUFFER_TEXTURE_UNIT, colour_texture);
+      glDrawArrays(GL_TRIANGLES, 0, TRIANGLE_NUM_VERTICES);
     }
 
     // The GPU has 2 framebuffers:
@@ -348,6 +359,7 @@ int main(int argc, char **argv) {
   glDeleteProgram(render_pipeline);
   glDeleteProgram(occlusion_culling);
   glDeleteProgram(frustum_culling);
+  glDeleteProgram(post_processing);
   glDeleteVertexArrays(1, &attribute_buffer);
   glDeleteBuffers(1, &vertex_buffer);
   glDeleteBuffers(1, &element_buffer);
