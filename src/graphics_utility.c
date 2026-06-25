@@ -39,12 +39,12 @@ inline void build_framebuffer(GLuint framebuffer, GLuint *accum_texture, GLuint 
                               int width, int height) {
   glCreateTextures(GL_TEXTURE_2D, 1, accum_texture);
   glTextureStorage2D(*accum_texture, NUM_MIPS, GL_RGBA16F, width, height);
-  glNamedFramebufferTexture(framebuffer, ACCUM_TARGET,
+  glNamedFramebufferTexture(framebuffer, ACCUM_COLOR_ATTACHMENT,
                             *accum_texture, MIPS_LEVEL);
 
   glCreateTextures(GL_TEXTURE_2D, 1, reveal_texture);
   glTextureStorage2D(*reveal_texture, NUM_MIPS, GL_R8, width, height);
-  glNamedFramebufferTexture(framebuffer, REVEAL_TARGET,
+  glNamedFramebufferTexture(framebuffer, REVEAL_COLOR_ATTACHMENT,
                             *reveal_texture, MIPS_LEVEL);
 
   // Specify buffers into which fragment colors or data values will be written

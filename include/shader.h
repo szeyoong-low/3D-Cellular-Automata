@@ -25,6 +25,8 @@
 #define DEPTH_UNIFORM "uDepth"
 #define SORT_BLOCK_UNIFORM "uBlockSize"
 #define SORT_STEP_UNIFORM "uStepSize"
+#define ACCUM_TEXTURE_UNIFORM "uAccumTexture"
+#define REVEAL_TEXTURE_UNIFORM "uRevealTexture"
 #define OPACITY_UNIFORM "uOpacity"
 
 #define NUM_WORKERS(dimension, local_size)                                     \
@@ -46,11 +48,13 @@
 
 #define WINDOW_FRAMEBUFFER_BINDING 0
 // One framebuffer can contain multiple buffer attachments
-#define ACCUM_TARGET GL_COLOR_ATTACHMENT0
-#define REVEAL_TARGET GL_COLOR_ATTACHMENT1
-#define ACCUM_TEXTURE_UNIT 0
-#define REVEAL_TEXTURE_UNIT 1
+#define ACCUM_COLOR_ATTACHMENT GL_COLOR_ATTACHMENT0
+#define REVEAL_COLOR_ATTACHMENT GL_COLOR_ATTACHMENT1
+#define ACCUM_BINDING_TARGET 0
+#define REVEAL_BINDING_TARGET 1
 #define TRIANGLE_NUM_VERTICES 3
+#define ACCUM_CLEAR (GLfloat []){0, 0, 0, 0}
+#define REVEAL_CLEAR (GLfloat []){1, 1, 1, 1}
 
 typedef struct {
   GLenum type; // GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, etc.

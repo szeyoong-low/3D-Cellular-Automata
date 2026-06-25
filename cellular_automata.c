@@ -94,10 +94,10 @@ int main(int argc, char **argv) {
   int fb_width, fb_height;
 
   // For weighted-blended order-independent transparency
-  GLuint framebuffer, colour_texture;
-  glCreateFramebuffers(1, &framebuffer);
+  GLuint blending_framebuffer, accum_texture, reveal_texture;
+  glCreateFramebuffers(1, &blending_framebuffer);
   glfwGetFramebufferSize(window, &fb_width, &fb_height);
-  build_framebuffer(framebuffer, &colour_texture, fb_width, fb_height);
+  build_framebuffer(blending_framebuffer, &accum_texture, &reveal_texture, fb_width, fb_height);
 
   // For bitonic sorting
   const float neg_inf = -HUGE_VALF;
@@ -117,8 +117,9 @@ int main(int argc, char **argv) {
   // Allow callbacks to access state
   WindowUserPointer window_user_pointer = {
       .camera = &camera,
-      .framebuffer = framebuffer,
-      .colour_texture = &colour_texture,
+      .blending_framebuffer = blending_framebuffer,
+      .accum_texture = &accum_texture,
+      .reveal_texture = &reveal_texture,
       .fb_width = &fb_width,
       .fb_height = &fb_height,
   };
@@ -153,12 +154,17 @@ int main(int argc, char **argv) {
   // Upload these once as they don't change per frame
   shader_upload_lighting_uniforms(render_pipeline, args.lighting, light_pos);
 
+  shader_upload_integer(render_pipeline, OPACITY_UNIFORM, opacity);
+
   shader_upload_dim_uniforms(occlusion_culling, sim_width, sim_height,
                              sim_depth);
   shader_upload_dim_uniforms(frustum_culling, sim_width, sim_height, sim_depth);
 
-  shader_upload_integer(post_processing, TEXTURE_UNIFORM,
-                        FRAMEBUFFER_TEXTURE_UNIT);
+  shader_upload_integer(post_processing, ACCUM_TEXTURE_UNIFORM,
+                        ACCUM_BINDING_TARGET);
+
+  shader_upload_integer(post_processing, REVEAL_TEXTURE_UNIFORM,
+                        REVEAL_BINDING_TARGET);
 
   // VRAM buffer initialisation
   GLuint attribute_buffer, vertex_buffer, element_buffer, render_info_buffer,
@@ -286,24 +292,28 @@ int main(int argc, char **argv) {
         }
       }
 
-      glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+      glBindFramebuffer(GL_FRAMEBUFFER, blending_framebuffer);
       glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glClearBufferfv(GL_COLOR, ACCUM_BINDING_TARGET, ACCUM_CLEAR);
+      glClearBufferfv(GL_COLOR, REVEAL_BINDING_TARGET, REVEAL_CLEAR);
+      glBlendFunci(ACCUM_BINDING_TARGET, GL_ONE, GL_ONE);
+      glBlendFunci(REVEAL_BINDING_TARGET, GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+    } else {
+      // The GPU maintains two buffers of the same pixel dimensions as your
+      // window:
+      // - Colour buffer: the RGB value of each pixel
+      // - Depth buffer: the depth (z value after perspective divide, in 0–1
+      //   range) of the closest fragment drawn to each pixel so far
+
+      // At the start of each frame, the depth buffer still holds the values from
+      // the previous frame.
+      // - GL_COLOR_BUFFER_BIT — fill the colour buffer with the clear colour
+      // - GL_DEPTH_BUFFER_BIT — fill the depth buffer with 1.0 everywhere
+
+      // Clear the framebuffer drawn into
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
-
-    // The GPU maintains two buffers of the same pixel dimensions as your
-    // window:
-    // - Colour buffer: the RGB value of each pixel
-    // - Depth buffer: the depth (z value after perspective divide, in 0–1
-    //   range) of the closest fragment drawn to each pixel so far
-
-    // At the start of each frame, the depth buffer still holds the values from
-    // the previous frame.
-    // - GL_COLOR_BUFFER_BIT — fill the colour buffer with the clear colour
-    // - GL_DEPTH_BUFFER_BIT — fill the depth buffer with 1.0 everywhere
-    
-    // Clear the framebuffer drawn into
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // glDrawElementsIndirect works exactly like glDrawElementsInstanced,
     // except that the instance count is read from a buffer by the GPU instead
@@ -324,11 +334,11 @@ int main(int argc, char **argv) {
       glBindFramebuffer(GL_FRAMEBUFFER, WINDOW_FRAMEBUFFER_BINDING);
       // Clear the framebuffer rendered into
       glClear(GL_COLOR_BUFFER_BIT);
-      // Only copying is done here.
-      glDisable(GL_BLEND);
-      // resize callback already updates fb_width and fb_height
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
       glUseProgram(post_processing);
-      glBindTextureUnit(FRAMEBUFFER_TEXTURE_UNIT, colour_texture);
+      glBindTextureUnit(ACCUM_BINDING_TARGET, accum_texture);
+      glBindTextureUnit(REVEAL_BINDING_TARGET, reveal_texture);
       glDrawArrays(GL_TRIANGLES, 0, TRIANGLE_NUM_VERTICES);
     }
 
@@ -367,8 +377,9 @@ int main(int argc, char **argv) {
   glDeleteBuffers(1, &occlusion_buffer);
   glDeleteBuffers(1, &instance_buffer);
   glDeleteBuffers(1, &draw_indirect_buffer);
-  glDeleteFramebuffers(1, &framebuffer);
-  glDeleteTextures(1, &colour_texture);
+  glDeleteFramebuffers(1, &blending_framebuffer);
+  glDeleteTextures(1, &accum_texture);
+  glDeleteTextures(1, &reveal_texture);
   if (opacity) {
     glDeleteProgram(sort_global);
     glDeleteProgram(sort_local);
