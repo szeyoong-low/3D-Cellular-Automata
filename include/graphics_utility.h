@@ -1,6 +1,7 @@
 #ifndef GRAPHICS_UTILITY_H
 #define GRAPHICS_UTILITY_H
 
+#include "camera.h"
 #include <GLFW/glfw3.h>
 #include <sys/types.h>
 
@@ -24,6 +25,10 @@ typedef struct {
   int baseVertex;
   uint baseInstance;
 } DrawElementsIndirectCommand;
+
+typedef struct {
+  Camera *camera;
+} WindowUserPointer;
 
 extern const DrawElementsIndirectCommand draw_indirect_cmd;
 

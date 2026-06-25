@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "graphics_utility.h"
 
 #define DRAG_SENSITIVITY 0.005F // radians of rotation per pixel dragged
 #define ZOOM_SENSITIVITY 0.1F   // world units per scroll tick
@@ -45,8 +46,6 @@ void camera_init(Camera *camera, GLFWwindow *window, float initial_radius) {
   camera->last_x = LAST_X_INIT;
   camera->last_y = LAST_Y_INIT;
 
-  // Allow callbacks to access the Camera state
-  glfwSetWindowUserPointer(window, camera);
   glfwSetMouseButtonCallback(window, on_mouse_button);
   glfwSetCursorPosCallback(window, on_cursor_pos);
   glfwSetScrollCallback(window, on_scroll);
@@ -90,7 +89,8 @@ void on_mouse_button(GLFWwindow *window, int button, int action, int mods) {
     return;
   }
 
-  Camera *camera = glfwGetWindowUserPointer(window);
+  Camera *camera =
+      ((WindowUserPointer *)glfwGetWindowUserPointer(window))->camera;
 
   if (action == GLFW_PRESS) {
     camera->dragging = true;
@@ -106,7 +106,9 @@ void on_mouse_button(GLFWwindow *window, int button, int action, int mods) {
 // the direction facing away from you
 
 void on_cursor_pos(GLFWwindow *window, double x, double y) {
-  Camera *camera = glfwGetWindowUserPointer(window);
+  Camera *camera =
+      ((WindowUserPointer *)glfwGetWindowUserPointer(window))->camera;
+
   if (!camera->dragging) {
     return;
   }
@@ -138,7 +140,9 @@ void on_cursor_pos(GLFWwindow *window, double x, double y) {
 
 void on_scroll(GLFWwindow *window, double xoffset, double yoffset) {
   (void)xoffset; // Only care about vertical scroll
-  Camera *camera = glfwGetWindowUserPointer(window);
+
+  Camera *camera =
+      ((WindowUserPointer *)glfwGetWindowUserPointer(window))->camera;
   camera->radius *= ZOOM_PCT_CHANGE(yoffset);
 
   // Floored so that you can't zoom inside the grid

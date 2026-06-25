@@ -107,6 +107,12 @@ int main(int argc, char **argv) {
   Camera camera;
   camera_init(&camera, window, 2.0F * bounding_radius);
 
+  // Allow callbacks to access state
+  WindowUserPointer window_user_pointer = {
+      .camera = &camera,
+  };
+  glfwSetWindowUserPointer(window, &window_user_pointer);
+
   // Shaders are loaded from disk relative to the working directory.
   // Run the binary from the project root: ./bin/cellular_automata
   const GLuint render_pipeline =
