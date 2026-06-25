@@ -28,6 +28,8 @@ typedef struct {
 
 typedef struct {
   Camera *camera;
+  int *fb_width;
+  int *fb_height;
 } WindowUserPointer;
 
 extern const DrawElementsIndirectCommand draw_indirect_cmd;

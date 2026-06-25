@@ -13,7 +13,9 @@ const DrawElementsIndirectCommand draw_indirect_cmd = {
 
 inline void framebuffer_size_callback(GLFWwindow *window, int width,
                                       int height) {
-  (void)window; // parameter required by GLFW signature but unused here
+  WindowUserPointer *window_user_pointer = glfwGetWindowUserPointer(window);
+  *window_user_pointer->fb_width = width;
+  *window_user_pointer->fb_height = height;
   glViewport(0, 0, width, height);
 }
 

@@ -111,6 +111,8 @@ int main(int argc, char **argv) {
   // Allow callbacks to access state
   WindowUserPointer window_user_pointer = {
       .camera = &camera,
+      .fb_width = &fb_width,
+      .fb_height = &fb_height,
   };
   glfwSetWindowUserPointer(window, &window_user_pointer);
 
@@ -226,8 +228,8 @@ int main(int argc, char **argv) {
     camera_position(&camera, eye);
     // Camera looks at the origin, and y-axis is up
     glm_lookat(eye, origin_coords, up_direction, view);
-    camera_update_proj(window, &fb_width, &fb_height, bounding_radius,
-                       camera.radius, proj);
+    camera_update_proj(fb_width, fb_height, bounding_radius, camera.radius,
+                       proj);
 
     if (opacity) {
       glClearNamedBufferData(sort_key_buffer, GL_R32F, GL_RED, GL_FLOAT,
