@@ -25,7 +25,7 @@
 #define DEPTH_UNIFORM "uDepth"
 #define SORT_BLOCK_UNIFORM "uBlockSize"
 #define SORT_STEP_UNIFORM "uStepSize"
-#define TEXTURE_UNIFORM "uTexture"
+#define OPACITY_UNIFORM "uOpacity"
 
 #define NUM_WORKERS(dimension, local_size)                                     \
   ((uint)ceil((float)dimension / (float)local_size))
