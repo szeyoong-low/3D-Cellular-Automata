@@ -1,7 +1,7 @@
 #version 450 core
 
 #define RENDER_INFO_SSBO_BINDING 0
-#define HIDDEN_CELL_SSBO_BINDING 1
+#define OCCLUSION_SSBO_BINDING 1
 
 #define CULLING_LOCAL_SIZE_X 10
 #define CULLING_LOCAL_SIZE_Y 10
@@ -19,7 +19,7 @@
 #define OPACITY_CEILING 200 // Above which, a cell is considered opaque
 
 #define FULLY_VISIBLE_CUBE 0
-#define FULLY_HIDDEN_CUBE 1
+#define FULLY_OCCLUDED_CUBE 1
 
 #define MIN_X 0
 #define MAX_X (uWidth - 1)
@@ -37,8 +37,8 @@ layout(local_size_x = CULLING_LOCAL_SIZE_X, local_size_y = CULLING_LOCAL_SIZE_Y,
 layout(std430, binding = RENDER_INFO_SSBO_BINDING) buffer RenderInfo {
   uint renderInfo[];
 };
-layout(std430, binding = HIDDEN_CELL_SSBO_BINDING) buffer HiddenCells {
-  uint hiddenCells[];
+layout(std430, binding = OCCLUSION_SSBO_BINDING) buffer OccludedCells {
+  uint occludedCells[];
 };
 
 void main() {
@@ -51,16 +51,16 @@ void main() {
     return;
   }
 
-  uint hidden = FULLY_VISIBLE_CUBE;
+  uint occluded = FULLY_VISIBLE_CUBE;
   const uint selfIndex = INDEX(x, y, z, uWidth, uHeight);
 
   if (ALPHA(selfIndex) < OPACITY_FLOOR) {
-    // Cell itself is considered hidden
-    hidden = FULLY_HIDDEN_CUBE;
+    // Cell itself is considered occluded
+    occluded = FULLY_OCCLUDED_CUBE;
   } else if (x == MIN_X || x == MAX_X || y == MIN_Y || y == MAX_Y ||
              z == MIN_Z || z == MAX_Z) {
     // Cell is at the surface of the entire grid
-    hidden = FULLY_VISIBLE_CUBE;
+    occluded = FULLY_VISIBLE_CUBE;
   } else if (ALPHA(INDEX(x - 1, y, z, uWidth, uHeight)) > OPACITY_CEILING &&
              ALPHA(INDEX(x + 1, y, z, uWidth, uHeight)) > OPACITY_CEILING &&
              ALPHA(INDEX(x, y - 1, z, uWidth, uHeight)) > OPACITY_CEILING &&
@@ -68,8 +68,8 @@ void main() {
              ALPHA(INDEX(x, y, z - 1, uWidth, uHeight)) > OPACITY_CEILING &&
              ALPHA(INDEX(x, y, z + 1, uWidth, uHeight)) > OPACITY_CEILING) {
     // All its neighbours are opaque
-    hidden = FULLY_HIDDEN_CUBE;
+    occluded = FULLY_OCCLUDED_CUBE;
   }
 
-  hiddenCells[selfIndex] = hidden;
+  occludedCells[selfIndex] = occluded;
 }

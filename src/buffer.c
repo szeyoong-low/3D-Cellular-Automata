@@ -50,7 +50,7 @@ inline void element_buffer_init(GLuint *element_buffer) {
 }
 
 // Shader storage buffer objects (SSBO) allow the GPU to write to them.
-// We use them here to cache the results of culling hidden cells.
+// We use them here to cache the results of culling occluded cells.
 inline void render_info_buffer_init(GLuint *render_info_buffer, size_t size,
                                     const RenderInfo *data) {
   glGenBuffers(1, render_info_buffer);
@@ -61,12 +61,12 @@ inline void render_info_buffer_init(GLuint *render_info_buffer, size_t size,
                     GL_DYNAMIC_DRAW);
 }
 
-inline void hidden_cell_buffer_init(GLuint *hidden_cell_buffer, size_t size) {
-  glGenBuffers(1, hidden_cell_buffer);
-  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, HIDDEN_CELL_SSBO_BINDING,
-                   *hidden_cell_buffer);
+inline void occlusion_buffer_init(GLuint *occlusion_buffer, size_t size) {
+  glGenBuffers(1, occlusion_buffer);
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, OCCLUSION_SSBO_BINDING,
+                   *occlusion_buffer);
   // GLSL's smallest integer type is 32 bits wide
-  glNamedBufferData(*hidden_cell_buffer, (GLsizeiptr)(size * sizeof(GLuint)),
+  glNamedBufferData(*occlusion_buffer, (GLsizeiptr)(size * sizeof(GLuint)),
                     NULL, GL_DYNAMIC_DRAW);
 }
 

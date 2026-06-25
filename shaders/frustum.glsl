@@ -1,7 +1,7 @@
 #version 450 core
 
 #define RENDER_INFO_SSBO_BINDING 0
-#define HIDDEN_CELL_SSBO_BINDING 1
+#define OCCLUSION_SSBO_BINDING 1
 #define INSTANCE_SSBO_BINDING 2
 #define DRAW_INDIRECT_SSBO_BINDING 3
 #define SORT_KEY_SSBO_BINDING 4
@@ -43,8 +43,8 @@ layout(local_size_x = CULLING_LOCAL_SIZE_X, local_size_y = CULLING_LOCAL_SIZE_Y,
 layout(std430, binding = RENDER_INFO_SSBO_BINDING) buffer RenderInfo {
   uint renderInfo[];
 };
-layout(std430, binding = HIDDEN_CELL_SSBO_BINDING) buffer HiddenCells {
-  uint hiddenCells[];
+layout(std430, binding = OCCLUSION_SSBO_BINDING) buffer OccludedCells {
+  uint occludedCells[];
 };
 layout(std430, binding = INSTANCE_SSBO_BINDING) buffer InstanceBuffer {
   InstanceData instanceBuffer[];
@@ -67,9 +67,9 @@ void main() {
   const uint y = gl_GlobalInvocationID.y;
   const uint z = gl_GlobalInvocationID.z;
 
-  // Out of bounds/hidden
+  // Out of bounds/occluded
   if (x >= uWidth || y >= uHeight || z >= uDepth ||
-      hiddenCells[INDEX(x, y, z, uWidth, uHeight)] == 1) {
+      occludedCells[INDEX(x, y, z, uWidth, uHeight)] == 1) {
     return;
   }
 
