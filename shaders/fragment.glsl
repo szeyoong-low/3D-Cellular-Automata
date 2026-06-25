@@ -1,14 +1,6 @@
 // Runs once per pixel to decide its colour
 #version 450 core
 
-// Declares output variable (a colour variable is mandatory)
-// Variables are passed between shaders through interface matching by name and
-// type, checked during linking (fragment shader interpolates values as it is
-// run more frequently than the vertex shader)
-in vec4 vColor;
-// out: goes to framebuffer
-out vec4 fragColor;
-
 // Phong lighting: finalColor = (ambient + diffuse + specular) * objectColor
 // - Ambient: background lighting that illuminates all objects equally
 // - Diffuse: general brightness of a spot, proportional to angle between
@@ -16,17 +8,28 @@ out vec4 fragColor;
 //            brighter)
 // - Specular: shiny spots, proportional to angle between reflected light
 //             and observer (light enters your eye -> see bright spots)
-float ambientStrength = 0.7F;
-float specularStrength = 0.7F;
-float shininess = 64.0F;
-vec3 lightColor = vec3(1.0F, 1.0F, 1.0F); // white light
+#define AMBIENT_STRENGTH 0.7F
+#define SPECULAR_STRENGTH 0.7F
+#define SHININESS 64.0F
+#define LIGHT_COLOR vec3(1.0F, 1.0F, 1.0F) // white light
+#define MIN_CONTRIBUTION 0.0F
+
 // Calculated by vertex shaders
 in vec3 vNormal;
 in vec3 vFragPos;
 // Provided by CPU
+
 uniform vec3 uLightPos;
 uniform vec3 uCameraPos;
 uniform bool uLighting; // Flag to turn on Phong lighting
+
+// Declares output variable (a colour variable is mandatory)
+// Variables are passed between shaders through interface matching by name and
+// type, checked during linking (fragment shader interpolates values as it is
+// run more frequently than the vertex shader)
+in vec4 vColor;
+// out: goes to framebuffer
+out vec4 fragColor;
 
 void main() {
   fragColor = vColor;
@@ -37,11 +40,12 @@ void main() {
     vec3 cameraDir = normalize(uCameraPos - vFragPos);
     vec3 reflectDir = reflect(-lightDir, norm);
 
-    vec3 ambient = ambientStrength * lightColor;
-    vec3 diffuse = max(dot(norm, lightDir), 0.0F) * lightColor;
-    vec3 specular = specularStrength *
-                    pow(max(dot(cameraDir, reflectDir), 0.0F), shininess) *
-                    lightColor;
+    vec3 ambient = AMBIENT_STRENGTH * LIGHT_COLOR;
+    vec3 diffuse = max(dot(norm, lightDir), MIN_CONTRIBUTION) * LIGHT_COLOR;
+    vec3 specular =
+        SPECULAR_STRENGTH *
+        pow(max(dot(cameraDir, reflectDir), MIN_CONTRIBUTION), SHININESS) *
+        LIGHT_COLOR;
 
     // Component-wise multiplication
     // .rgba and .xyzw are GLSL's swizzling syntax

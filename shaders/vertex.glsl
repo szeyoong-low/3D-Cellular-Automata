@@ -1,8 +1,25 @@
 // Runs once per vertex to decide its position
 #version 450 core
 
-const vec3 NORMALS[6] = vec3[6](vec3(0, 0, 1), vec3(0, 0, -1), vec3(-1, 0, 0),
-                                vec3(1, 0, 0), vec3(0, -1, 0), vec3(0, 1, 0));
+#define POSITION_ATTR_BINDING 0
+#define NORMAL_ATTR_BINDING 1
+#define OFFSET_ATTR_BINDING 2
+#define COLOUR_ATTR_BINDING 3
+
+#define DIMENSION_SCALE 0.5 // Multiply by 0.5 to produce unit cubes
+#define DEFAULT_W_COMPONENT 1.0
+
+#define X_AXIS_POSITIVE vec3(1, 0, 0)
+#define X_AXIS_NEGATIVE vec3(-1, 0, 0)
+#define Y_AXIS_POSITIVE vec3(0, 1, 0)
+#define Y_AXIS_NEGATIVE vec3(0, -1, 0)
+#define Z_AXIS_POSITIVE vec3(0, 0, 1)
+#define Z_AXIS_NEGATIVE vec3(0, 0, -1)
+#define FACES_PER_CUBE 6
+
+const vec3 NORMALS[FACES_PER_CUBE] =
+    vec3[FACES_PER_CUBE](Z_AXIS_POSITIVE, Z_AXIS_NEGATIVE, X_AXIS_NEGATIVE,
+                         X_AXIS_POSITIVE, Y_AXIS_NEGATIVE, Y_AXIS_POSITIVE);
 
 // Uploaded from C via glUniformMatrix4fv each frame
 // No need for a model matrix (local space → world space) - done by instance
@@ -15,18 +32,20 @@ uniform mat4 uViewProj; // View composed with project
 // in: from CPU side (VAO)
 // vec3: 3-component float vector
 // location 0 matches attribute slot 0 in the VAO
-layout(location = 0) in vec3 aPos;
+layout(location = POSITION_ATTR_BINDING) in vec3 aPos;
 
 // Per-instance world position, fed from the instance VBO
-layout(location = 2) in vec3 aOffset;
+layout(location = OFFSET_ATTR_BINDING) in vec3 aOffset;
 
 // Calculating transformed normals, for Phong lighting
-layout(location = 1) in uint aNormalIndex;
+layout(location = NORMAL_ATTR_BINDING) in uint aNormalIndex;
+
 out vec3 vNormal;  // local normal transformed into world space
 out vec3 vFragPos; // World space position of the vertex
 
 // Sent to fragment shader
-layout(location = 3) in vec4 aColor; // Already normalised
+layout(location = COLOUR_ATTR_BINDING) in vec4 aColor; // Already normalised
+
 out vec4 vColor;
 
 // A uniform is a variable set from the CPU (your C code) that stays constant
@@ -52,7 +71,8 @@ void main() {
   // aOffset shifts the entire cube to its world position
   // aPos gives the position of each corner
   // Multiply by 0.5 to produce unit cubes
-  vec4 worldSpacePos = vec4(aPos * 0.5 + aOffset, 1.0);
+  vec4 worldSpacePos =
+      vec4(aPos * DIMENSION_SCALE + aOffset, DEFAULT_W_COMPONENT);
 
   // gl_Position is a variable that must be written to
   gl_Position = uViewProj * worldSpacePos;
