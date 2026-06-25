@@ -1,5 +1,6 @@
 #include "graphics_utility.h"
 #include "mesh.h"
+#include "shader.h"
 #include <stdio.h>
 
 const DrawElementsIndirectCommand draw_indirect_cmd = {

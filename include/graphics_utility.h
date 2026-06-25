@@ -18,11 +18,6 @@
 
 #define POWER_TWO(exp) ((uint)pow(2.0L, (double)exp))
 
-#define WINDOW_FRAMEBUFFER_BINDING 0
-#define BLENDING_FRAMEBUFFER_BINDING GL_COLOR_ATTACHMENT0
-#define FRAMEBUFFER_TEXTURE_UNIT 0
-#define TRIANGLE_NUM_VERTICES 3
-
 typedef struct {
   uint count;
   uint instanceCount;
