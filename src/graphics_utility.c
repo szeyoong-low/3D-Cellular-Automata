@@ -17,6 +17,26 @@ inline void framebuffer_size_callback(GLFWwindow *window, int width,
   *window_user_pointer->fb_width = width;
   *window_user_pointer->fb_height = height;
   glViewport(0, 0, width, height);
+
+  if (width == 0 || height == 0) {
+    return;
+  }
+  
+  GLuint blending_framebuffer = window_user_pointer->framebuffer;
+  GLuint *colour_texture = window_user_pointer->colour_texture;
+
+  glDeleteTextures(1, colour_texture);
+  build_framebuffer(blending_framebuffer, colour_texture, width, height);
+}
+
+inline void build_framebuffer(GLuint framebuffer, GLuint *colour_texture,
+                              int width, int height) {
+  glCreateTextures(GL_TEXTURE_2D, 1, colour_texture);
+  // Only 1 mip level (resolution)
+  glTextureStorage2D(*colour_texture, 1, GL_RGBA8, width, height);
+  // Attach the texture to the framebuffer object at location 0
+  glNamedFramebufferTexture(framebuffer, BLENDING_FRAMEBUFFER_BINDING,
+                            *colour_texture, 0);
 }
 
 inline void error_callback(int error, const char *description) {

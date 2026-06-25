@@ -93,6 +93,12 @@ int main(int argc, char **argv) {
   vec3 light_pos = {10.0F, 10.0F, 10.0F};
   int fb_width, fb_height;
 
+  // For weighted-blended order-independent transparency
+  GLuint framebuffer, colour_texture;
+  glCreateFramebuffers(1, &framebuffer);
+  glfwGetFramebufferSize(window, &fb_width, &fb_height);
+  build_framebuffer(framebuffer, &colour_texture, fb_width, fb_height);
+
   // For bitonic sorting
   const float neg_inf = -HUGE_VALF;
   const ulong sim_size_padded = next_power_two(sim_size);
@@ -111,6 +117,8 @@ int main(int argc, char **argv) {
   // Allow callbacks to access state
   WindowUserPointer window_user_pointer = {
       .camera = &camera,
+      .framebuffer = framebuffer,
+      .colour_texture = &colour_texture,
       .fb_width = &fb_width,
       .fb_height = &fb_height,
   };
@@ -272,6 +280,8 @@ int main(int argc, char **argv) {
           }
         }
       }
+
+      glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
     }
 
     // The GPU maintains two buffers of the same pixel dimensions as your
@@ -300,6 +310,16 @@ int main(int argc, char **argv) {
     glMemoryBarrier(GL_COMMAND_BARRIER_BIT |
                     GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
     glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_BYTE, 0);
+
+    if (opacity) {
+      glBindFramebuffer(GL_FRAMEBUFFER, WINDOW_FRAMEBUFFER_BINDING);
+      glClear(GL_COLOR_BUFFER_BIT);
+      // camera_update_proj already updates fb_width and fb_height
+      // drawFramebuffer is set to 0 (default - window)
+      glBlitNamedFramebuffer(framebuffer, WINDOW_FRAMEBUFFER_BINDING, 0, 0, fb_width, fb_height,
+                             0, 0, fb_width, fb_height, GL_COLOR_BUFFER_BIT,
+                             GL_NEAREST);
+    }
 
     // The GPU has 2 framebuffers:
     // - the back buffer that is drawn into
@@ -335,6 +355,8 @@ int main(int argc, char **argv) {
   glDeleteBuffers(1, &occlusion_buffer);
   glDeleteBuffers(1, &instance_buffer);
   glDeleteBuffers(1, &draw_indirect_buffer);
+  glDeleteFramebuffers(1, &framebuffer);
+  glDeleteTextures(1, &colour_texture);
   if (opacity) {
     glDeleteProgram(sort_global);
     glDeleteProgram(sort_local);

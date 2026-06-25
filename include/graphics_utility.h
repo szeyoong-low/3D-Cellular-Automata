@@ -18,6 +18,9 @@
 
 #define POWER_TWO(exp) ((uint)pow(2.0L, (double)exp))
 
+#define WINDOW_FRAMEBUFFER_BINDING 0
+#define BLENDING_FRAMEBUFFER_BINDING GL_COLOR_ATTACHMENT0
+
 typedef struct {
   uint count;
   uint instanceCount;
@@ -28,6 +31,8 @@ typedef struct {
 
 typedef struct {
   Camera *camera;
+  GLuint framebuffer;
+  GLuint *colour_texture;
   int *fb_width;
   int *fb_height;
 } WindowUserPointer;
@@ -35,6 +40,9 @@ typedef struct {
 extern const DrawElementsIndirectCommand draw_indirect_cmd;
 
 extern void error_callback(int error, const char *description);
+
+extern void build_framebuffer(GLuint framebuffer, GLuint *colour_texture,
+                              int width, int height);
 
 // Keeps the GL viewport matched to the framebuffer when the window is resized
 extern void framebuffer_size_callback(GLFWwindow *window, int width,
