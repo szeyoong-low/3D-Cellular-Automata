@@ -3,6 +3,9 @@
 #include "shader.h"
 #include <stdio.h>
 
+#define NUM_MIPS 1 // Only 1 mip level (resolution)
+#define MIPS_LEVEL 0
+
 const DrawElementsIndirectCommand draw_indirect_cmd = {
     .count = CUBE_VERTEX_COUNT, // # indices/instance
     .instanceCount = 0, // # instances/draw (updated by the compute shader)
@@ -23,21 +26,30 @@ inline void framebuffer_size_callback(GLFWwindow *window, int width,
     return;
   }
 
-  GLuint blending_framebuffer = window_user_pointer->framebuffer;
-  GLuint *colour_texture = window_user_pointer->colour_texture;
+  GLuint blending_framebuffer = window_user_pointer->blending_framebuffer;
+  GLuint *accum_texture = window_user_pointer->accum_texture;
+  GLuint *reveal_texture = window_user_pointer->reveal_texture;
 
-  glDeleteTextures(1, colour_texture);
-  build_framebuffer(blending_framebuffer, colour_texture, width, height);
+  glDeleteTextures(1, accum_texture);
+  glDeleteTextures(1, reveal_texture);
+  build_framebuffer(blending_framebuffer, accum_texture, reveal_texture, width, height);
 }
 
-inline void build_framebuffer(GLuint framebuffer, GLuint *colour_texture,
+inline void build_framebuffer(GLuint framebuffer, GLuint *accum_texture, GLuint *reveal_texture,
                               int width, int height) {
-  glCreateTextures(GL_TEXTURE_2D, 1, colour_texture);
-  // Only 1 mip level (resolution)
-  glTextureStorage2D(*colour_texture, 1, GL_RGBA8, width, height);
-  // Attach the texture to the framebuffer object at location 0
-  glNamedFramebufferTexture(framebuffer, BLENDING_FRAMEBUFFER_BINDING,
-                            *colour_texture, 0);
+  glCreateTextures(GL_TEXTURE_2D, 1, accum_texture);
+  glTextureStorage2D(*accum_texture, NUM_MIPS, GL_RGBA16F, width, height);
+  glNamedFramebufferTexture(framebuffer, ACCUM_TARGET,
+                            *accum_texture, MIPS_LEVEL);
+
+  glCreateTextures(GL_TEXTURE_2D, 1, reveal_texture);
+  glTextureStorage2D(*reveal_texture, NUM_MIPS, GL_R8, width, height);
+  glNamedFramebufferTexture(framebuffer, REVEAL_TARGET,
+                            *reveal_texture, MIPS_LEVEL);
+
+  // Specify buffers into which fragment colors or data values will be written
+  glNamedFramebufferDrawBuffers(framebuffer, 2,
+    (GLenum[]){GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1});
 }
 
 inline void error_callback(int error, const char *description) {

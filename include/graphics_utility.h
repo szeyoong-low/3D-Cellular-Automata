@@ -28,8 +28,9 @@ typedef struct {
 
 typedef struct {
   Camera *camera;
-  GLuint framebuffer;
-  GLuint *colour_texture;
+  GLuint blending_framebuffer;
+  GLuint *accum_texture;
+  GLuint *reveal_texture;
   int *fb_width;
   int *fb_height;
 } WindowUserPointer;
@@ -38,7 +39,7 @@ extern const DrawElementsIndirectCommand draw_indirect_cmd;
 
 extern void error_callback(int error, const char *description);
 
-extern void build_framebuffer(GLuint framebuffer, GLuint *colour_texture,
+extern void build_framebuffer(GLuint framebuffer, GLuint *accum_texture, GLuint *reveal_texture,
                               int width, int height);
 
 // Keeps the GL viewport matched to the framebuffer when the window is resized
