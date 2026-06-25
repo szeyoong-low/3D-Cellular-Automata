@@ -45,14 +45,14 @@ For all other matters, we will follow the conventions that we have been observin
 - Make feature suggestions and report bugs in the [Issues](https://github.com/szeyoong-low/3D-Cellular-Automata/issues) tab
 
 ## Branch protection and repo settings
-- Auto-close issues with merged linked pull requests
+- ~~Auto-close issues with merged linked pull requests~~
 - Allow comments on individual commits
 - Always suggest updating pull request branches
 - Allow merge commits only (no squash/rebase)
 - Main branch
     - Require a pull request before merging
     - Require approvals (1)
-    - Dismiss stale pull request approvals when new commits are pushed
+    - ~~Dismiss stale pull request approvals when new commits are pushed~~
     - Require conversation resolution before merging
     - Do not allow bypassing the above settings
 
