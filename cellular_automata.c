@@ -104,8 +104,8 @@ int main(int argc, char **argv) {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   // Start 2× the bounding radius away so the full grid fits in the FOV
-  Camera cam;
-  camera_init(&cam, window, 2.0F * bounding_radius);
+  Camera camera;
+  camera_init(&camera, window, 2.0F * bounding_radius);
 
   // Shaders are loaded from disk relative to the working directory.
   // Run the binary from the project root: ./bin/cellular_automata
@@ -216,10 +216,10 @@ int main(int argc, char **argv) {
                          (GLsizeiptr)sizeof(GLuint), &zero);
 
     // Rebuild the view matrix using current camera position
-    camera_position(&cam, eye);
+    camera_position(&camera, eye);
     // Camera looks at the origin, and y-axis is up
     glm_lookat(eye, origin_coords, up_direction, view);
-    camera_update_proj(window, bounding_radius, cam.radius, proj);
+    camera_update_proj(window, bounding_radius, camera.radius, proj);
 
     if (opacity) {
       glClearNamedBufferData(sort_key_buffer, GL_R32F, GL_RED, GL_FLOAT,

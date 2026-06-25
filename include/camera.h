@@ -34,11 +34,11 @@ extern float camera_grid_bounding_radius(uint width, uint height, uint depth);
 // Fill the camera with sensible defaults so it orbits the origin from a nice
 // angle, and registers event callbacks for mouse clicks, cursor movements, and
 // scroll.
-extern void camera_init(Camera *cam, GLFWwindow *window, float initial_radius);
+extern void camera_init(Camera *camera, GLFWwindow *window, float initial_radius);
 
 // Convert spherical coordinates to a world-space eye (Cartesian coordinates).
 // Pass the result directly to glm_lookat as the first argument.
-extern void camera_position(Camera *cam, vec3 out);
+extern void camera_position(Camera *camera, vec3 out);
 
 // Side effects: updates window viewport size, writes new projection matrix into
 // proj
