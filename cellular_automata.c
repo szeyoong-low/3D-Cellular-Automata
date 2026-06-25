@@ -233,18 +233,6 @@ int main(int argc, char **argv) {
     DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded,
                              sim_depth_padded)
 
-    // The GPU maintains two buffers of the same pixel dimensions as your
-    // window:
-    // - Colour buffer: the RGB value of each pixel
-    // - Depth buffer: the depth (z value after perspective divide, in 0–1
-    //   range) of the closest fragment drawn to each pixel so far
-
-    // At the start of each frame, the depth buffer still holds the values from
-    // the previous frame.
-    // - GL_COLOR_BUFFER_BIT — fill the colour buffer with the clear colour
-    // - GL_DEPTH_BUFFER_BIT — fill the depth buffer with 1.0 everywhere
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     if (opacity) {
       // Ensure that the frustum culler has completed its writes before reads
       // by the sorting algorithm
@@ -275,6 +263,18 @@ int main(int argc, char **argv) {
         }
       }
     }
+    
+    // The GPU maintains two buffers of the same pixel dimensions as your
+    // window:
+    // - Colour buffer: the RGB value of each pixel
+    // - Depth buffer: the depth (z value after perspective divide, in 0–1
+    //   range) of the closest fragment drawn to each pixel so far
+
+    // At the start of each frame, the depth buffer still holds the values from
+    // the previous frame.
+    // - GL_COLOR_BUFFER_BIT — fill the colour buffer with the clear colour
+    // - GL_DEPTH_BUFFER_BIT — fill the depth buffer with 1.0 everywhere
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // glDrawElementsIndirect works exactly like glDrawElementsInstanced,
     // except that the instance count is read from a buffer by the GPU instead
