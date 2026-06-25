@@ -4,7 +4,15 @@
 #include <GLFW/glfw3.h>
 #include <sys/types.h>
 
-#define WINDOW_WIDTH 800 // Fallback only
+#define DESTROY_AND_EXIT(window, success)                                      \
+  glfwDestroyWindow(window);                                                   \
+  glfwTerminate();                                                             \
+  return (success) ? EXIT_SUCCESS : EXIT_FAILURE;
+
+#define TITLE_BUFFER_SIZE 64
+#define FPS_UPDATE_INTERVAL 0.4
+
+#define WINDOW_WIDTH 800  // Fallback only
 #define WINDOW_HEIGHT 600 // Fallback only
 
 #define CULLING_LOCAL_SIZE_X 10.0F
