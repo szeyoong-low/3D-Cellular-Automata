@@ -1,9 +1,12 @@
 #version 450 core
 
+// Handles case where partners are in different workgroups.
+
 #define INSTANCE_SSBO_BINDING 2
 #define SORT_KEY_SSBO_BINDING 4
 
-#define SORTING_LOCAL_SIZE 256
+#define SORTING_LOCAL_SIZE                                                     \
+  1024 // 1024 is the maximum permissible workgroup size.
 
 uniform uint uBlockSize;
 uniform uint uStepSize;
@@ -14,7 +17,6 @@ struct InstanceData {
 };
 
 // Sorting is 1D work (1 thread/comparison).
-// 256 is a good choice as it is a moderately large power of two.
 layout(local_size_x = SORTING_LOCAL_SIZE) in;
 layout(std430, binding = INSTANCE_SSBO_BINDING) buffer InstanceBuffer {
   InstanceData instanceBuffer[];
