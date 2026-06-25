@@ -15,8 +15,8 @@
 #define MIN_CONTRIBUTION 0.0F
 
 // Calculated by vertex shaders
-in vec3 vNormal;
-in vec3 vFragPos;
+in flat vec3 vNormal;
+in flat vec3 vFragPos;
 // Provided by CPU
 
 uniform vec3 uLightPos;
@@ -27,7 +27,7 @@ uniform bool uLighting; // Flag to turn on Phong lighting
 // Variables are passed between shaders through interface matching by name and
 // type, checked during linking (fragment shader interpolates values as it is
 // run more frequently than the vertex shader)
-in vec4 vColor;
+in flat vec4 vColor;
 // out: goes to framebuffer
 out vec4 fragColor;
 
