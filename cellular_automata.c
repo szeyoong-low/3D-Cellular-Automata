@@ -87,7 +87,7 @@ int main(int argc, char **argv) {
   GLuint zero = 0;
   vec3 eye;
   vec3 light_pos = {10.0F, 10.0F, 10.0F};
-  Camera cam;
+
   // For bitonic sorting
   const float neg_inf = -HUGE_VALF;
   const ulong sim_size_padded = next_power_two(sim_size);
@@ -100,6 +100,7 @@ int main(int argc, char **argv) {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   // Start 2× the bounding radius away so the full grid fits in the FOV
+  Camera cam;
   camera_init(&cam, window, 2.0F * bounding_radius);
 
   // Shaders are loaded from disk relative to the working directory.
