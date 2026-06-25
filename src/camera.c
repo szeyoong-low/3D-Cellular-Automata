@@ -6,6 +6,7 @@
 #define ZOOM_PCT_CHANGE(yoffset) (1.0F - (float)yoffset * ZOOM_SENSITIVITY)
 #define RADIUS_MIN 1.0F  // closest the camera can get to the target
 #define ELEV_MAX 1.3963F // 80 degrees
+#define FIELD_OF_VIEW (float)GLM_PI_4 // 45 degrees
 
 #define AZIMUTH_INIT 0.5F   // 29 degrees off-axis so depth is visible
 #define ELEVATION_INIT 0.3F // 17 degrees upward tilt to see the top face
@@ -75,13 +76,11 @@ void camera_update_proj(GLFWwindow *window, float bounding_radius,
   glViewport(0, 0, fb_width, fb_height);
 
   const float aspect = (float)fb_width / (float)fb_height;
-  // FOV: the angle at which the bounding sphere exactly fills the vertical
-  const float fov = 2.0F * atanf(bounding_radius / camera_radius);
   // Far plane covers the back of the grid plus a 2× margin for scrolling out
   const float far_plane = camera_radius + bounding_radius * 2.0F;
   // near = 0.1 (clips geometry very close to the camera), far clips everything
   // further away
-  glm_perspective(fov, aspect, NEAR_PLANE, far_plane, proj);
+  glm_perspective(FIELD_OF_VIEW, aspect, NEAR_PLANE, far_plane, proj);
 }
 
 void on_mouse_button(GLFWwindow *window, int button, int action, int mods) {

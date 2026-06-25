@@ -103,8 +103,8 @@
 // only needs to remember the (static) heap brick it may belong to, plus a
 // random value used to stagger the heap dissolve and the dot's assembly.
 typedef struct {
-  uint32_t counter;    // shared frame clock (every cell increments in sync)
-  uint8_t is_brick;    // 1 if this cell is part of the heap
+  uint32_t counter;     // shared frame clock (every cell increments in sync)
+  uint8_t is_brick;     // 1 if this cell is part of the heap
   uint8_t brick_yellow; // 1 = yellow brick, 0 = green brick
   uint8_t rnd;          // per-cell random 0..255 (dissolve / assembly order)
 } Cell;
@@ -163,8 +163,10 @@ static float dist_arc(float px, float py, float cx, float cy, float r, float a0,
 // Shortest in-plane distance from (x,y) to the hook+stem centreline.
 static float dist_to_centreline_2d(float x, float y) {
   float d = dist_arc(x, y, HOOK_CX, HOOK_CY, HOOK_R, HOOK_A0, HOOK_A1);
-  d = fminf(d, dist_segment(x, y, STEM_TOP_X, STEM_TOP_Y, STEM_MID_X, STEM_MID_Y));
-  d = fminf(d, dist_segment(x, y, STEM_MID_X, STEM_MID_Y, STEM_BOT_X, STEM_BOT_Y));
+  d = fminf(d,
+            dist_segment(x, y, STEM_TOP_X, STEM_TOP_Y, STEM_MID_X, STEM_MID_Y));
+  d = fminf(d,
+            dist_segment(x, y, STEM_MID_X, STEM_MID_Y, STEM_BOT_X, STEM_BOT_Y));
   return d;
 }
 
@@ -211,7 +213,8 @@ static float path_position(float x, float y) {
   float best_d = 1e9f, best_pos = 0.0f, t;
 
   // stem, segment 1 (base -> mid)
-  float d = seg_dist_t(x, y, STEM_BOT_X, STEM_BOT_Y, STEM_MID_X, STEM_MID_Y, &t);
+  float d =
+      seg_dist_t(x, y, STEM_BOT_X, STEM_BOT_Y, STEM_MID_X, STEM_MID_Y, &t);
   if (d < best_d) {
     best_d = d;
     best_pos = t * l1;
@@ -291,7 +294,7 @@ static float reveal_amount(uint32_t counter) {
   if (t < FALL_END)
     return 1.0f -
            (float)(t - HOLD_END) / (float)(FALL_END - HOLD_END); // swaying back
-  return 0.0f;                                                    // rest in heap
+  return 0.0f;                                                   // rest in heap
 }
 
 // Cobra band colour at a point on the body: 1 = yellow band, 0 = green base.

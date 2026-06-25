@@ -1,20 +1,29 @@
 #version 450 core
 
+// Handles case where partners are in different workgroups.
+
+#define INSTANCE_SSBO_BINDING 2
+#define SORT_KEY_SSBO_BINDING 4
+
+#define SORTING_LOCAL_SIZE                                                     \
+  1024 // 1024 is the maximum permissible workgroup size.
+
+uniform uint uBlockSize;
+uniform uint uStepSize;
+
 struct InstanceData {
   ivec3 offset;
   uint packedColour;
 };
 
 // Sorting is 1D work (1 thread/comparison).
-// 256 is a good choice as it is a moderately large power of two.
-layout(local_size_x = 256) in;
-layout(std430, binding = 2) buffer InstanceBuffer {
+layout(local_size_x = SORTING_LOCAL_SIZE) in;
+layout(std430, binding = INSTANCE_SSBO_BINDING) buffer InstanceBuffer {
   InstanceData instanceBuffer[];
 };
-layout(std430, binding = 4) buffer SortKeys { float sortKeys[]; };
-
-uniform uint uBlockSize;
-uniform uint uStepSize;
+layout(std430, binding = SORT_KEY_SSBO_BINDING) buffer SortKeys {
+  float sortKeys[];
+};
 
 // Bitonic sort: https://www.geeksforgeeks.org/dsa/bitonic-sort/
 // Each thread represents one index self. It computes its partner, decides the
@@ -45,15 +54,15 @@ void main() {
     // stage.
     const bool ascending = (self & uBlockSize) == 0;
 
-    const float sortKeySelf = sortKeys[self];
-    const float sortKeyPartner = sortKeys[partner];
+    const float selfSortKey = sortKeys[self];
+    const float partnerSortKey = sortKeys[partner];
 
     // Since we want descending order (farthest instance first),
     // we treat ascending blocks as descending, and vice versa.
-    if (ascending == (sortKeySelf < sortKeyPartner)) {
+    if (ascending == (selfSortKey < partnerSortKey)) {
       // swap both keys and instance data
-      sortKeys[self] = sortKeyPartner;
-      sortKeys[partner] = sortKeySelf;
+      sortKeys[self] = partnerSortKey;
+      sortKeys[partner] = selfSortKey;
 
       InstanceData temp = instanceBuffer[self];
       instanceBuffer[self] = instanceBuffer[partner];

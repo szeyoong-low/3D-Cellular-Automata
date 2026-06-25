@@ -19,14 +19,6 @@
 #include "graphics_utility.h"
 #include "shader.h"
 
-#define DESTROY_AND_EXIT(window, success)                                      \
-  glfwDestroyWindow(window);                                                   \
-  glfwTerminate();                                                             \
-  return (success) ? EXIT_SUCCESS : EXIT_FAILURE;
-
-#define TITLE_BUFFER_SIZE 64
-#define FPS_UPDATE_INTERVAL 0.4
-
 int main(int argc, char **argv) {
   args args = parse_args(argc, argv);
 
@@ -99,7 +91,7 @@ int main(int argc, char **argv) {
   GLuint zero = 0;
   vec3 eye;
   vec3 light_pos = {10.0F, 10.0F, 10.0F};
-  Camera cam;
+
   // For bitonic sorting
   const float neg_inf = -HUGE_VALF;
   const ulong sim_size_padded = next_power_two(sim_size);
@@ -112,6 +104,7 @@ int main(int argc, char **argv) {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   // Start 2× the bounding radius away so the full grid fits in the FOV
+  Camera cam;
   camera_init(&cam, window, 2.0F * bounding_radius);
 
   // Shaders are loaded from disk relative to the working directory.
@@ -121,8 +114,8 @@ int main(int argc, char **argv) {
                                          {GL_FRAGMENT_SHADER, FRAGMENT_SHADER}},
                            2);
 
-  const GLuint hidden_cell_culling = shader_build_program(
-      (ShaderDef[]){{GL_COMPUTE_SHADER, HIDDEN_CELL_COMPUTE_SHADER}}, 1);
+  const GLuint occlusion_culling = shader_build_program(
+      (ShaderDef[]){{GL_COMPUTE_SHADER, OCCLUSION_COMPUTE_SHADER}}, 1);
 
   const GLuint frustum_culling = shader_build_program(
       (ShaderDef[]){{GL_COMPUTE_SHADER, FRUSTUM_COMPUTE_SHADER}}, 1);
@@ -138,34 +131,42 @@ int main(int argc, char **argv) {
   // Upload these once as they don't change per frame
   shader_upload_lighting_uniforms(render_pipeline, args.lighting, light_pos);
 
-  shader_upload_dim_uniforms(hidden_cell_culling, sim_width, sim_height,
+  shader_upload_dim_uniforms(occlusion_culling, sim_width, sim_height,
                              sim_depth);
   shader_upload_dim_uniforms(frustum_culling, sim_width, sim_height, sim_depth);
 
   // VRAM buffer initialisation
   GLuint attribute_buffer, vertex_buffer, element_buffer, render_info_buffer,
-      hidden_cell_buffer, instance_buffer, draw_indirect_buffer,
-      sort_key_buffer;
+      occlusion_buffer, instance_buffer, draw_indirect_buffer, sort_key_buffer;
 
   attribute_buffer_init(&attribute_buffer);
   vertex_buffer_init(&vertex_buffer);
   element_buffer_init(&element_buffer);
   render_info_buffer_init(&render_info_buffer, sim_size, sim_render_info(sim));
-  hidden_cell_buffer_init(&hidden_cell_buffer, sim_size);
+  occlusion_buffer_init(&occlusion_buffer, sim_size);
   instance_buffer_init(&instance_buffer,
                        (opacity) ? sim_size_padded : sim_size);
   draw_indirect_buffer_init(&draw_indirect_buffer);
 
-  GLuint bitonic_sort;
-  GLint sort_block_loc, sort_step_loc;
+  GLuint sort_global, sort_local;
+  GLint sort_global_block_loc, sort_global_step_loc, sort_local_block_loc,
+      sort_local_step_loc;
 
   if (opacity) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    bitonic_sort = shader_build_program(
-        (ShaderDef[]){{GL_COMPUTE_SHADER, BITONIC_SORT_COMPUTE_SHADER}}, 1);
-    sort_block_loc = glGetUniformLocation(bitonic_sort, SORT_BLOCK_UNIFORM);
-    sort_step_loc = glGetUniformLocation(bitonic_sort, SORT_STEP_UNIFORM);
+
+    sort_global = shader_build_program(
+        (ShaderDef[]){{GL_COMPUTE_SHADER, SORT_GLOBAL_COMPUTE_SHADER}}, 1);
+    sort_global_block_loc =
+        glGetUniformLocation(sort_global, SORT_BLOCK_UNIFORM);
+    sort_global_step_loc = glGetUniformLocation(sort_global, SORT_STEP_UNIFORM);
+
+    sort_local = shader_build_program(
+        (ShaderDef[]){{GL_COMPUTE_SHADER, SORT_LOCAL_COMPUTE_SHADER}}, 1);
+    sort_local_block_loc = glGetUniformLocation(sort_local, SORT_BLOCK_UNIFORM);
+    sort_local_step_loc = glGetUniformLocation(sort_local, SORT_STEP_UNIFORM);
+
     sort_key_buffer_init(&sort_key_buffer, sim_size_padded);
   } else {
     glEnable(GL_DEPTH_TEST);
@@ -173,10 +174,8 @@ int main(int argc, char **argv) {
   }
 
   double last_step_time = glfwGetTime(); // seconds as a double since glfwInit()
-  glUseProgram(hidden_cell_culling);
-  glDispatchCompute(NUM_WORKERS(sim_width_padded, CULLING_LOCAL_SIZE_X),
-                    NUM_WORKERS(sim_height_padded, CULLING_LOCAL_SIZE_Y),
-                    NUM_WORKERS(sim_depth_padded, CULLING_LOCAL_SIZE_Z));
+  glUseProgram(occlusion_culling);
+  DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded, sim_depth_padded)
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   // store to calculate the frame rate
@@ -203,11 +202,9 @@ int main(int argc, char **argv) {
                                (GLsizeiptr)sizeof(RenderInfo),
                            sim_render_info(sim));
 
-      glUseProgram(hidden_cell_culling);
-      glDispatchCompute(NUM_WORKERS(sim_width_padded, CULLING_LOCAL_SIZE_X),
-                        NUM_WORKERS(sim_height_padded, CULLING_LOCAL_SIZE_Y),
-                        NUM_WORKERS(sim_depth_padded, CULLING_LOCAL_SIZE_Z));
-      // Ensures writes to the hidden_cells SSBO are complete and visible to the
+      glUseProgram(occlusion_culling);
+      DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded, sim_depth_padded)
+      // Ensures writes to the occlusion SSBO are complete and visible to the
       // next compute shader that needs to read them
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
     }
@@ -231,9 +228,7 @@ int main(int argc, char **argv) {
     glm_mat4_mul(proj, view, view_proj);
     glUseProgram(frustum_culling);
     frustum_extract(view_proj, eye);
-    glDispatchCompute(NUM_WORKERS(sim_width_padded, CULLING_LOCAL_SIZE_X),
-                      NUM_WORKERS(sim_height_padded, CULLING_LOCAL_SIZE_Y),
-                      NUM_WORKERS(sim_depth_padded, CULLING_LOCAL_SIZE_Z));
+    DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded, sim_depth_padded)
 
     // The GPU maintains two buffers of the same pixel dimensions as your
     // window:
@@ -254,15 +249,26 @@ int main(int argc, char **argv) {
 
       // Sort instances back to front to address inconsistent alpha blending due
       // to z-fighting
-      glUseProgram(bitonic_sort);
       for (int i = 1; i <= sort_num_passes; i++) {
-        glUniform1ui(sort_block_loc, POWER_TWO(i));
+        const uint block_size = POWER_TWO(i);
 
         for (int j = i - 1; j >= 0; j--) {
-          glUniform1ui(sort_step_loc, POWER_TWO(j));
-          glDispatchCompute(NUM_WORKERS(sim_size_padded, SORTING_LOCAL_SIZE_X),
+          const uint step_size = POWER_TWO(j);
+          // Swap partner is within shared memory
+          const bool local = step_size <= SORTING_LOCAL_MAX_STEP;
+
+          glUseProgram(local ? sort_local : sort_global);
+          glUniform1ui(local ? sort_local_block_loc : sort_global_block_loc,
+                       block_size);
+          glUniform1ui(local ? sort_local_step_loc : sort_global_step_loc,
+                       step_size);
+          glDispatchCompute(NUM_WORKERS(sim_size_padded, SORTING_LOCAL_SIZE),
                             SORTING_NUM_WORKERS_Y, SORTING_NUM_WORKERS_Z);
+          // This is a global memory barrier
           glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+          if (local) {
+            break; // All smaller step sizes taken care of
+          }
         }
       }
     }
@@ -307,17 +313,18 @@ int main(int argc, char **argv) {
   sim_destroy(sim);
   dlclose(handle);
   glDeleteProgram(render_pipeline);
-  glDeleteProgram(hidden_cell_culling);
+  glDeleteProgram(occlusion_culling);
   glDeleteProgram(frustum_culling);
   glDeleteVertexArrays(1, &attribute_buffer);
   glDeleteBuffers(1, &vertex_buffer);
   glDeleteBuffers(1, &element_buffer);
   glDeleteBuffers(1, &render_info_buffer);
-  glDeleteBuffers(1, &hidden_cell_buffer);
+  glDeleteBuffers(1, &occlusion_buffer);
   glDeleteBuffers(1, &instance_buffer);
   glDeleteBuffers(1, &draw_indirect_buffer);
   if (opacity) {
-    glDeleteProgram(bitonic_sort);
+    glDeleteProgram(sort_global);
+    glDeleteProgram(sort_local);
     glDeleteBuffers(1, &sort_key_buffer);
   }
   DESTROY_AND_EXIT(window, true)
