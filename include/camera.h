@@ -43,8 +43,9 @@ extern void camera_init(Camera *camera, GLFWwindow *window,
 extern void camera_position(Camera *camera, vec3 out);
 
 // Side effects: updates window viewport size, writes new projection matrix into
-// proj
-extern void camera_update_proj(GLFWwindow *window, float bounding_radius,
+//               proj, sets fb_width and fb_height
+extern void camera_update_proj(GLFWwindow *window, int *fb_width,
+                               int *fb_height, float bounding_radius,
                                float camera_radius, mat4 proj);
 
 #endif

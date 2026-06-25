@@ -61,8 +61,8 @@ void camera_position(Camera *camera, vec3 out) {
   out[2] = camera->radius * cos_elev * cosf(camera->azimuth); // z
 }
 
-void camera_update_proj(GLFWwindow *window, float bounding_radius,
-                        float camera_radius, mat4 proj) {
+void camera_update_proj(GLFWwindow *window, int *fb_width, int *fb_height,
+                        float bounding_radius, float camera_radius, mat4 proj) {
   // The projection matrix gives vertices a coordinate w that represents the
   // positive depth along the camera's view axis. The normalised device
   // coordinates are then the xyz coordinates divided by w, so that objects
@@ -70,11 +70,10 @@ void camera_update_proj(GLFWwindow *window, float bounding_radius,
 
   // Use framebuffer size (# physical pixels) instead of window size
   // (# logical pixels) as HiDPI displays have more physical than logical pixels
-  int fb_width, fb_height;
-  glfwGetFramebufferSize(window, &fb_width, &fb_height);
-  glViewport(0, 0, fb_width, fb_height);
+  glfwGetFramebufferSize(window, fb_width, fb_height);
+  glViewport(0, 0, *fb_width, *fb_height);
 
-  const float aspect = (float)fb_width / (float)fb_height;
+  const float aspect = (float)*fb_width / (float)*fb_height;
   // Far plane covers the back of the grid plus a 2× margin for scrolling out
   const float far_plane = camera_radius + bounding_radius * 2.0F;
   // near = 0.1 (clips geometry very close to the camera), far clips everything

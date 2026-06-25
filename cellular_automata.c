@@ -91,6 +91,7 @@ int main(int argc, char **argv) {
   GLuint zero = 0;
   vec3 eye;
   vec3 light_pos = {10.0F, 10.0F, 10.0F};
+  int fb_width, fb_height;
 
   // For bitonic sorting
   const float neg_inf = -HUGE_VALF;
@@ -225,7 +226,8 @@ int main(int argc, char **argv) {
     camera_position(&camera, eye);
     // Camera looks at the origin, and y-axis is up
     glm_lookat(eye, origin_coords, up_direction, view);
-    camera_update_proj(window, bounding_radius, camera.radius, proj);
+    camera_update_proj(window, &fb_width, &fb_height, bounding_radius,
+                       camera.radius, proj);
 
     if (opacity) {
       glClearNamedBufferData(sort_key_buffer, GL_R32F, GL_RED, GL_FLOAT,
@@ -269,7 +271,7 @@ int main(int argc, char **argv) {
         }
       }
     }
-    
+
     // The GPU maintains two buffers of the same pixel dimensions as your
     // window:
     // - Colour buffer: the RGB value of each pixel
