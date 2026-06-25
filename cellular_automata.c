@@ -113,11 +113,12 @@ int main(int argc, char **argv) {
   // Allow callbacks to access state
   WindowUserPointer window_user_pointer = {
       .camera = &camera,
-      .blending_framebuffer = blending_framebuffer,
-      .accum_texture = &accum_texture,
-      .reveal_texture = &reveal_texture,
       .fb_width = &fb_width,
       .fb_height = &fb_height,
+      .accum_texture = &accum_texture,
+      .reveal_texture = &reveal_texture,
+      .blending_framebuffer = blending_framebuffer,
+      .opacity = opacity,
   };
   glfwSetWindowUserPointer(window, &window_user_pointer);
 

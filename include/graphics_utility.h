@@ -28,11 +28,12 @@ typedef struct {
 
 typedef struct {
   Camera *camera;
-  GLuint blending_framebuffer;
-  GLuint *accum_texture;
-  GLuint *reveal_texture;
   int *fb_width;
   int *fb_height;
+  GLuint *accum_texture;
+  GLuint *reveal_texture;
+  GLuint blending_framebuffer;
+  const bool opacity;
 } WindowUserPointer;
 
 extern const DrawElementsIndirectCommand draw_indirect_cmd;
