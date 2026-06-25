@@ -252,8 +252,8 @@ int main(int argc, char **argv) {
       // - Depth buffer: the depth (z value after perspective divide, in 0–1
       //   range) of the closest fragment drawn to each pixel so far
 
-      // At the start of each frame, the depth buffer still holds the values from
-      // the previous frame.
+      // At the start of each frame, the depth buffer still holds the values
+      // from the previous frame.
       // - GL_COLOR_BUFFER_BIT — fill the colour buffer with the clear colour
       // - GL_DEPTH_BUFFER_BIT — fill the depth buffer with 1.0 everywhere
 

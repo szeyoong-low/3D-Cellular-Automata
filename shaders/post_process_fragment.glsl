@@ -20,7 +20,10 @@ out vec4 fragColor;
 
 void main() {
   // Source: https://learnopengl.com/Guest-Articles/2020/OIT/Weighted-Blended
-  const vec4 accum = texelFetch(uAccumTexture, ivec2(gl_FragCoord.xy), HIGHEST_MIP);
-  const float reveal = texelFetch(uRevealTexture, ivec2(gl_FragCoord.xy), HIGHEST_MIP).r;
-  fragColor = vec4(accum.rgb / max(accum.a, MIN_ACCUM_ALPHA), (REVEAL_COMPLEMENT - reveal));
+  const vec4 accum =
+      texelFetch(uAccumTexture, ivec2(gl_FragCoord.xy), HIGHEST_MIP);
+  const float reveal =
+      texelFetch(uRevealTexture, ivec2(gl_FragCoord.xy), HIGHEST_MIP).r;
+  fragColor = vec4(accum.rgb / max(accum.a, MIN_ACCUM_ALPHA),
+                   (REVEAL_COMPLEMENT - reveal));
 }

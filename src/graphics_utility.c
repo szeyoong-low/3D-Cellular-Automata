@@ -32,15 +32,16 @@ inline void framebuffer_size_callback(GLFWwindow *window, int width,
 
   glDeleteTextures(1, accum_texture);
   glDeleteTextures(1, reveal_texture);
-  build_framebuffer(blending_framebuffer, accum_texture, reveal_texture, width, height);
+  build_framebuffer(blending_framebuffer, accum_texture, reveal_texture, width,
+                    height);
 }
 
-inline void build_framebuffer(GLuint framebuffer, GLuint *accum_texture, GLuint *reveal_texture,
-                              int width, int height) {
+inline void build_framebuffer(GLuint framebuffer, GLuint *accum_texture,
+                              GLuint *reveal_texture, int width, int height) {
   glCreateTextures(GL_TEXTURE_2D, 1, accum_texture);
   glTextureStorage2D(*accum_texture, NUM_MIPS, GL_RGBA16F, width, height);
-  glNamedFramebufferTexture(framebuffer, ACCUM_COLOR_ATTACHMENT,
-                            *accum_texture, MIPS_LEVEL);
+  glNamedFramebufferTexture(framebuffer, ACCUM_COLOR_ATTACHMENT, *accum_texture,
+                            MIPS_LEVEL);
 
   glCreateTextures(GL_TEXTURE_2D, 1, reveal_texture);
   glTextureStorage2D(*reveal_texture, NUM_MIPS, GL_R8, width, height);
@@ -48,8 +49,8 @@ inline void build_framebuffer(GLuint framebuffer, GLuint *accum_texture, GLuint 
                             *reveal_texture, MIPS_LEVEL);
 
   // Specify buffers into which fragment colors or data values will be written
-  glNamedFramebufferDrawBuffers(framebuffer, 2,
-    (GLenum[]){GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1});
+  glNamedFramebufferDrawBuffers(
+      framebuffer, 2, (GLenum[]){GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1});
 }
 
 inline void error_callback(int error, const char *description) {

@@ -44,8 +44,10 @@
 #define ACCUM_BINDING_TARGET 0
 #define REVEAL_BINDING_TARGET 1
 #define TRIANGLE_NUM_VERTICES 3
-#define ACCUM_CLEAR (GLfloat []){0, 0, 0, 0}
-#define REVEAL_CLEAR (GLfloat []){1, 1, 1, 1}
+#define ACCUM_CLEAR                                                            \
+  (GLfloat[]) { 0, 0, 0, 0 }
+#define REVEAL_CLEAR                                                           \
+  (GLfloat[]) { 1, 1, 1, 1 }
 
 typedef struct {
   GLenum type; // GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, etc.

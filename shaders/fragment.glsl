@@ -47,7 +47,8 @@ uniform bool uOpacity;
 in flat vec4 vColor;
 // out: goes to framebuffer
 // ACCUM_COLOR_ATTACHMENT is just fragColor if uOpacity is false
-layout(location = ACCUM_COLOR_ATTACHMENT) out vec4 accum;    // Pre-multiplied colours
+layout(
+    location = ACCUM_COLOR_ATTACHMENT) out vec4 accum; // Pre-multiplied colours
 // Discarded if no attachment is bound here
 layout(location = REVEAL_COLOR_ATTACHMENT) out float reveal; // Pixel revealage
 
