@@ -275,7 +275,7 @@ int main(int argc, char **argv) {
     glUseProgram(render_pipeline);
     glUniformMatrix4fv(view_proj_loc, 1, GL_FALSE, (float *)view_proj);
     glUniform3fv(camera_pos_loc, 1, eye);
-    // Ensure that the sorting algorithm has completed its writes before reads
+    // Ensure that the compute shaders have completed its writes before reads
     // by the rendering pipeline
     glMemoryBarrier(GL_COMMAND_BARRIER_BIT |
                     GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);

@@ -14,7 +14,6 @@
 #define OCCLUSION_SSBO_BINDING 1
 #define INSTANCE_SSBO_BINDING 2
 #define DRAW_INDIRECT_SSBO_BINDING 3
-#define SORT_KEY_SSBO_BINDING 4
 
 typedef struct {
   ivec3 offset;

@@ -4,7 +4,6 @@
 #define OCCLUSION_SSBO_BINDING 1
 #define INSTANCE_SSBO_BINDING 2
 #define DRAW_INDIRECT_SSBO_BINDING 3
-#define SORT_KEY_SSBO_BINDING 4
 
 #define CULLING_LOCAL_SIZE_X 16
 #define CULLING_LOCAL_SIZE_Y 8
@@ -54,9 +53,6 @@ layout(std430, binding = INSTANCE_SSBO_BINDING) buffer InstanceBuffer {
 layout(std430, binding = DRAW_INDIRECT_SSBO_BINDING) buffer DrawIndirect {
   uint drawIndirect[];
 };
-layout(std430, binding = SORT_KEY_SSBO_BINDING) buffer SortKeys {
-  float sortKeys[];
-};
 
 // Because a cube isn't a point, we test against a bounding sphere.
 bool check_plane(vec4 plane, vec3 center) {
@@ -92,12 +88,5 @@ void main() {
     instanceBuffer[instance_no].offset = ivec3(x_off, y_off, z_off);
     instanceBuffer[instance_no].packedColour =
         renderInfo[INDEX(x, y, z, uWidth, uHeight)];
-
-    if (uOpacity) {
-      // Use projected distance of the cell along the camera's view axis
-      // to sort the instances in descending order of distance from the
-      // camera before drawing
-      sortKeys[instance_no] = dot(center, uViewDir);
-    }
   }
 }
