@@ -6,9 +6,9 @@
 #include <glad/glad.h>
 
 #define POSITION_ATTR_BINDING 0
-#define NORMAL_ATTR_BINDING 1
-#define OFFSET_ATTR_BINDING 2
-#define COLOUR_ATTR_BINDING 3
+#define OFFSET_ATTR_BINDING 1
+#define COLOUR_ATTR_BINDING 2
+#define FACE_INDEX_ATTR_BINDING 3
 
 #define RENDER_INFO_SSBO_BINDING 0
 #define OCCLUSION_SSBO_BINDING 1
@@ -18,6 +18,9 @@
 typedef struct {
   ivec3 offset;
   uint packedColour;
+  uint faceIndex;
+  // Beware of struct alignment: vec3 has a base alignment of 16 bytes in GLSL
+  uint _pad[3];
 } InstanceData;
 
 // Vertex attribute object (VAO): records all attribute bindings made

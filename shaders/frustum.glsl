@@ -17,6 +17,8 @@
 #define UNIT_CUBE_RADIUS 0.866F
 
 #define FULLY_OCCLUDED_CUBE 0x3F
+#define FACES_PER_CUBE 6
+#define ONE_BIT_MASK 0x1
 
 // x is column, y is row, z is slice, w is uWidth, h is uHeight
 #define INDEX(x, y, z, w, h) ((x) + (w) * ((y) + (h) * (z)))
@@ -37,6 +39,7 @@ uniform bool uOpacity;
 struct InstanceData {
   ivec3 offset;
   uint packedColour;
+  uint faceIndex;
 };
 
 layout(local_size_x = CULLING_LOCAL_SIZE_X, local_size_y = CULLING_LOCAL_SIZE_Y,
@@ -66,8 +69,13 @@ void main() {
   const uint z = gl_GlobalInvocationID.z;
 
   // Out of bounds/occluded
-  if (x >= uWidth || y >= uHeight || z >= uDepth ||
-      occludedCells[INDEX(x, y, z, uWidth, uHeight)] == FULLY_OCCLUDED_CUBE) {
+  if (x >= uWidth || y >= uHeight || z >= uDepth) {
+    return;
+  }
+
+  uint occlusionMask = occludedCells[INDEX(x, y, z, uWidth, uHeight)];
+
+  if (occlusionMask == FULLY_OCCLUDED_CUBE) {
     return;
   }
 
@@ -82,11 +90,18 @@ void main() {
   if (check_plane(uLeft, center) && check_plane(uRight, center) &&
       check_plane(uTop, center) && check_plane(uBottom, center) &&
       check_plane(uNear, center) && check_plane(uFar, center)) {
-    uint instance_no = atomicAdd(drawIndirect[INSTANCE_COUNT_INDEX], 1);
 
-    // Prepare the information needed for rendering
-    instanceBuffer[instance_no].offset = ivec3(x_off, y_off, z_off);
-    instanceBuffer[instance_no].packedColour =
-        renderInfo[INDEX(x, y, z, uWidth, uHeight)];
+    // Generate one instance per visible face.
+    for (int i = 0; i < FACES_PER_CUBE; i++, occlusionMask >>= 1) {
+      if ((occlusionMask & ONE_BIT_MASK) == 0) {
+        uint instance_no = atomicAdd(drawIndirect[INSTANCE_COUNT_INDEX], 1);
+
+        // Prepare the information needed for rendering
+        instanceBuffer[instance_no].offset = ivec3(x_off, y_off, z_off);
+        instanceBuffer[instance_no].packedColour =
+            renderInfo[INDEX(x, y, z, uWidth, uHeight)];
+        instanceBuffer[instance_no].faceIndex = i;
+      }
+    }
   }
 }
