@@ -15,6 +15,7 @@ typedef struct {
   bool lighting;
   bool custom_seed;
   uint seed;
+  bool no_walls;
 } args;
 
 // parses the arguments passed into the program

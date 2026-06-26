@@ -21,6 +21,7 @@
 #define WIDTH_UNIFORM "uWidth"
 #define HEIGHT_UNIFORM "uHeight"
 #define DEPTH_UNIFORM "uDepth"
+#define NO_WALLS_UNIFORM "uNoWalls"
 #define ACCUM_TEXTURE_UNIFORM "uAccumTexture"
 #define REVEAL_TEXTURE_UNIFORM "uRevealTexture"
 #define OPACITY_UNIFORM "uOpacity"

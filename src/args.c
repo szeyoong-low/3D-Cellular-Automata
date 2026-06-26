@@ -8,6 +8,7 @@
 #define OPACITY_FLAG 'o'
 #define LIGHTING_FLAG 'l'
 #define INIT_SEED_FLAG 'i'
+#define NO_WALLS_FLAG 'w'
 
 // items for argp
 // provides a version for --version
@@ -32,6 +33,10 @@ static struct argp_option options[] = {
     {"lighting", LIGHTING_FLAG, NULL, 0, "Enable Phong lighting", 0},
     {"initialseed", INIT_SEED_FLAG, "UINT", 0,
      "Set a custom starting seed for random number generator", 0},
+     {"no internal walls", NO_WALLS_FLAG, NULL, 0,
+     "Do not render faces separating 2 cells of the same colour (always "
+     "enabled if opacity is false)",
+     0},
     // array end
     {0}};
 
@@ -91,6 +96,10 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     args->seed = (uint)val;
     break;
   }
+  case NO_WALLS_FLAG: {
+    args->no_walls = true;
+    break;
+  }
   // handles a string not attached to a flag (our cell path)
   case ARGP_KEY_ARG: {
     // checks the number of strings passed
@@ -129,6 +138,7 @@ args parse_args(int argc, char **argv) {
       .lighting = false,
       .custom_seed = false,
       .seed = 0, // Just a dummy number
+      .no_walls = false,
   };
 
   // parse cli args
