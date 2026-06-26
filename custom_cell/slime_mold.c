@@ -55,7 +55,7 @@
 #define MOLD_COLOUR(opacity)                                                   \
   (RenderInfo) { MAX_RGBA_VAL, 200, 0, opacity }
 #define PHEROMONE_COLOUR                                                       \
-  (RenderInfo) { MAX_RGBA_VAL, 192, 203, 20 }
+  (RenderInfo) { MAX_RGBA_VAL, 192, 203, 60 }
 #define FOOD_COLOUR                                                            \
   (RenderInfo) { 0, 180, MAX_RGBA_VAL, MAX_RGBA_VAL }
 #define EMPTY_COLOUR (RenderInfo){0, 0, 0, 0};
@@ -273,9 +273,9 @@ void cell_update(void *cell_to_update, RenderInfo *renderer_state,
 static void assign_colour(const MoldCell *cell, RenderInfo *renderer_cell) {
   if (cell->pheromone_level >= dynamic_mold_threshold) {
     // active mold - bright yellow/orange
-    uint8_t opacity =
-        (uint8_t)((cell->pheromone_level * MAX_RGBA_VAL) / MAX_PHEROMONE);
-    *renderer_cell = MOLD_COLOUR(opacity);
+    // uint8_t opacity =
+    //     (uint8_t)((cell->pheromone_level * MAX_RGBA_VAL) / MAX_PHEROMONE);
+    *renderer_cell = MOLD_COLOUR(255);
   } else if (cell->pheromone_level > dynamic_pheromone_decay_amount &&
              (uint)cell->nutrient_level == 0) {
     // pheromones - transluscent pink
