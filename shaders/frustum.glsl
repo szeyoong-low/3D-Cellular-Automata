@@ -17,6 +17,8 @@
 // you'll never accidentally cull a cell that's partially in view.
 #define UNIT_CUBE_RADIUS 0.866F
 
+#define FULLY_OCCLUDED_CUBE 0x3F
+
 // x is column, y is row, z is slice, w is uWidth, h is uHeight
 #define INDEX(x, y, z, w, h) ((x) + (w) * ((y) + (h) * (z)))
 
@@ -69,7 +71,7 @@ void main() {
 
   // Out of bounds/occluded
   if (x >= uWidth || y >= uHeight || z >= uDepth ||
-      occludedCells[INDEX(x, y, z, uWidth, uHeight)] == 1) {
+      occludedCells[INDEX(x, y, z, uWidth, uHeight)] == FULLY_OCCLUDED_CUBE) {
     return;
   }
 
