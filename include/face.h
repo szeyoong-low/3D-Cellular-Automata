@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 
+#define FACES_PER_CUBE 6
 #define FACE_TOTAL_VERTICES 6
 #define FACE_UNIQUE_VERTICES 4
 // Will be placed in 3D space by vertex shader

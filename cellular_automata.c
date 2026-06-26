@@ -15,6 +15,7 @@
 // Must come after glad is included so that types are defined
 #include "buffer.h"
 #include "camera.h"
+#include "face.h"
 #include "frustum.h"
 #include "graphics_utility.h"
 #include "shader.h"
@@ -35,6 +36,7 @@ int main(int argc, char **argv) {
   const uint sim_depth = args.depth;
   const uint sim_depth_padded = (uint)next_power_two(sim_depth);
   const size_t sim_size = sim_width * sim_height * sim_depth;
+  const size_t num_instances = sim_size * FACES_PER_CUBE;
   const double step_time = args.steptime;
   const bool opacity = args.opacity;
 
@@ -182,7 +184,7 @@ int main(int argc, char **argv) {
   element_buffer_init(&element_buffer);
   render_info_buffer_init(&render_info_buffer, sim_size, sim_render_info(sim));
   occlusion_buffer_init(&occlusion_buffer, sim_size);
-  instance_buffer_init(&instance_buffer, sim_size);
+  instance_buffer_init(&instance_buffer, num_instances);
   draw_indirect_buffer_init(&draw_indirect_buffer);
 
   double last_step_time = glfwGetTime(); // seconds as a double since glfwInit()
