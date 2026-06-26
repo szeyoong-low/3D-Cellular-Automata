@@ -49,6 +49,26 @@ layout(std430, binding = OCCLUSION_SSBO_BINDING) buffer OccludedCells {
   uint occludedCells[];
 };
 
+// Returns true iff face is occluded (should be culled)
+// Precondition: the cube at selfIndex is not transparent and is not at the
+//               boundary of the simulation grid
+bool occlusion_check(uint selfIndex, uint otherIndex) {
+  const uint selfAlpha = ALPHA(selfIndex);
+  const uint otherAlpha = ALPHA(otherIndex);
+
+  // 1. Faces at the surface of a cluster of cubes should be rendered
+  //    unconditionally
+  return (otherAlpha >= OPACITY_FLOOR) &&
+         // 2. A boundary between two cubes of the same packed colour should be
+         //    culled unconditionally
+         (renderInfo[selfIndex] == renderInfo[otherIndex] ||
+          // 3. A boundary between two cubes of different packed colours should
+          //    be rendered if and only if the other cube is at or below the
+          //    opacity ceiling. If both cells are below the opacity ceiling,
+          //    the back face will be culled later on.
+          otherAlpha > OPACITY_CEILING);
+}
+
 void main() {
   const uint x = gl_GlobalInvocationID.x;
   const uint y = gl_GlobalInvocationID.y;
@@ -61,11 +81,10 @@ void main() {
 
   uint occluded = FULLY_VISIBLE_CUBE;
   const uint selfIndex = INDEX(x, y, z, uWidth, uHeight);
-  const uint selfColour = ALPHA(selfIndex);
 
-  if (selfColour < OPACITY_FLOOR) {
-    // Cells below the opacity floor are considered transparent, so all faces
-    // are hidden (the whole cell is culled)
+  if (ALPHA(selfIndex) < OPACITY_FLOOR) {
+    // Cells below the opacity floor are considered transparent, and all faces
+    // are "occluded" (the whole cell is culled)
     occluded = FULLY_OCCLUDED_CUBE;
   } else if (x == MIN_X || x == MAX_X || y == MIN_Y || y == MAX_Y ||
              z == MIN_Z || z == MAX_Z) {
@@ -73,22 +92,22 @@ void main() {
     occluded = FULLY_VISIBLE_CUBE;
   } else {
     occluded |=
-        uint(ALPHA(INDEX(x, y, z + 1, uWidth, uHeight)) > OPACITY_CEILING)
+        uint(occlusion_check(selfIndex, INDEX(x, y, z + 1, uWidth, uHeight)))
         << FRONT_FACE_OFFSET;
     occluded |=
-        uint(ALPHA(INDEX(x, y, z - 1, uWidth, uHeight)) > OPACITY_CEILING)
+        uint(occlusion_check(selfIndex, INDEX(x, y, z - 1, uWidth, uHeight)))
         << BACK_FACE_OFFSET;
     occluded |=
-        uint(ALPHA(INDEX(x - 1, y, z, uWidth, uHeight)) > OPACITY_CEILING)
+        uint(occlusion_check(selfIndex, INDEX(x - 1, y, z, uWidth, uHeight)))
         << LEFT_FACE_OFFSET;
     occluded |=
-        uint(ALPHA(INDEX(x + 1, y, z, uWidth, uHeight)) > OPACITY_CEILING)
+        uint(occlusion_check(selfIndex, INDEX(x + 1, y, z, uWidth, uHeight)))
         << RIGHT_FACE_OFFSET;
     occluded |=
-        uint(ALPHA(INDEX(x, y - 1, z, uWidth, uHeight)) > OPACITY_CEILING)
+        uint(occlusion_check(selfIndex, INDEX(x, y - 1, z, uWidth, uHeight)))
         << BOTTOM_FACE_OFFSET;
     occluded |=
-        uint(ALPHA(INDEX(x, y + 1, z, uWidth, uHeight)) > OPACITY_CEILING)
+        uint(occlusion_check(selfIndex, INDEX(x, y + 1, z, uWidth, uHeight)))
         << TOP_FACE_OFFSET;
   }
 
