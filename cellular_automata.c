@@ -174,7 +174,8 @@ int main(int argc, char **argv) {
   shader_upload_dim_uniforms(occlusion_culling, sim_width, sim_height,
                              sim_depth);
 
-  shader_upload_integer(occlusion_culling, NO_WALLS_UNIFORM, !opacity || args.no_walls);
+  shader_upload_integer(occlusion_culling, NO_WALLS_UNIFORM, args.no_walls);
+  shader_upload_integer(occlusion_culling, OPACITY_UNIFORM, opacity);
 
   shader_upload_dim_uniforms(frustum_culling, sim_width, sim_height, sim_depth);
 

@@ -39,6 +39,7 @@ uniform uint uHeight;
 uniform uint uDepth;
 
 uniform bool uNoWalls;
+uniform bool uOpacity;
 
 layout(local_size_x = CULLING_LOCAL_SIZE_X, local_size_y = CULLING_LOCAL_SIZE_Y,
        local_size_z = CULLING_LOCAL_SIZE_Z) in;
@@ -67,14 +68,17 @@ bool occlusion_check(uint selfIndex, uint otherX, uint otherY, uint otherZ) {
   // 1. Faces at the surface of a cluster of cubes should be rendered
   //    unconditionally
   return (otherAlpha >= OPACITY_FLOOR) &&
-         // 2. A boundary between two cubes of the same packed colour should be
-         //    culled unconditionally
+         // 2. If opacity is disabled, we cull all internal faces.
+         //    Otherwise, we check them below.
+         (!uOpacity ||
+          // 3. A boundary between two cubes of the same packed colour should be
+          //    culled unconditionally
           ((uNoWalls && (renderInfo[selfIndex] == renderInfo[otherIndex])) ||
-          // 3. A boundary between two cubes of different packed colours should
-          //    be rendered if and only if the other cube is at or below the
-          //    opacity ceiling. If both cells are below the opacity ceiling,
-          //    the back face will be culled later on.
-          otherAlpha > OPACITY_CEILING);
+           // 4. A boundary between two cubes of different packed colours should
+           //    be rendered if and only if the other cube is at or below the
+           //    opacity ceiling. If both cells are below the opacity ceiling,
+           //    the back face will be culled later on.
+           otherAlpha > OPACITY_CEILING));
 }
 
 void main() {
