@@ -49,10 +49,16 @@ layout(std430, binding = OCCLUSION_SSBO_BINDING) buffer OccludedCells {
   uint occludedCells[];
 };
 
-// Returns true iff face is occluded (should be culled)
-// Precondition: the cube at selfIndex is not transparent and is not at the
-//               boundary of the simulation grid
-bool occlusion_check(uint selfIndex, uint otherIndex) {
+// Returns true iff face should be culled
+// Precondition: the cube at selfIndex is not transparent
+bool occlusion_check(uint selfIndex, uint otherX, uint otherY, uint otherZ) {
+  if (otherX < 0 || otherX >= uWidth || otherY < 0 || otherY >= uHeight ||
+      otherZ < 0 || otherZ >= uDepth) {
+    // Visible faces at the edge of the simulation grid are never culled
+    return false;
+  }
+
+  const uint otherIndex = INDEX(otherX, otherY, otherZ, uWidth, uHeight);
   const uint selfAlpha = ALPHA(selfIndex);
   const uint otherAlpha = ALPHA(otherIndex);
 
@@ -86,29 +92,19 @@ void main() {
     // Cells below the opacity floor are considered transparent, and all faces
     // are "occluded" (the whole cell is culled)
     occluded = FULLY_OCCLUDED_CUBE;
-  } else if (x == MIN_X || x == MAX_X || y == MIN_Y || y == MAX_Y ||
-             z == MIN_Z || z == MAX_Z) {
-    // Visible cells at the edge of the simulation grid are never culled
-    occluded = FULLY_VISIBLE_CUBE;
   } else {
-    occluded |=
-        uint(occlusion_check(selfIndex, INDEX(x, y, z + 1, uWidth, uHeight)))
-        << FRONT_FACE_OFFSET;
-    occluded |=
-        uint(occlusion_check(selfIndex, INDEX(x, y, z - 1, uWidth, uHeight)))
-        << BACK_FACE_OFFSET;
-    occluded |=
-        uint(occlusion_check(selfIndex, INDEX(x - 1, y, z, uWidth, uHeight)))
-        << LEFT_FACE_OFFSET;
-    occluded |=
-        uint(occlusion_check(selfIndex, INDEX(x + 1, y, z, uWidth, uHeight)))
-        << RIGHT_FACE_OFFSET;
-    occluded |=
-        uint(occlusion_check(selfIndex, INDEX(x, y - 1, z, uWidth, uHeight)))
-        << BOTTOM_FACE_OFFSET;
-    occluded |=
-        uint(occlusion_check(selfIndex, INDEX(x, y + 1, z, uWidth, uHeight)))
-        << TOP_FACE_OFFSET;
+    occluded |= uint(occlusion_check(selfIndex, x, y, z + 1))
+                << FRONT_FACE_OFFSET;
+    occluded |= uint(occlusion_check(selfIndex, x, y, z - 1))
+                << BACK_FACE_OFFSET;
+    occluded |= uint(occlusion_check(selfIndex, x - 1, y, z))
+                << LEFT_FACE_OFFSET;
+    occluded |= uint(occlusion_check(selfIndex, x + 1, y, z))
+                << RIGHT_FACE_OFFSET;
+    occluded |= uint(occlusion_check(selfIndex, x, y - 1, z))
+                << BOTTOM_FACE_OFFSET;
+    occluded |= uint(occlusion_check(selfIndex, x, y + 1, z))
+                << TOP_FACE_OFFSET;
   }
 
   occludedCells[selfIndex] = occluded;
