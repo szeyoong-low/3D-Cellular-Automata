@@ -14,7 +14,6 @@
 #define OCCLUSION_SSBO_BINDING 1
 #define INSTANCE_SSBO_BINDING 2
 #define DRAW_INDIRECT_SSBO_BINDING 3
-#define SORT_KEY_SSBO_BINDING 4
 
 typedef struct {
   ivec3 offset;
@@ -32,6 +31,5 @@ extern void render_info_buffer_init(GLuint *render_info_buffer, size_t size,
 extern void occlusion_buffer_init(GLuint *occlusion_buffer, size_t size);
 extern void instance_buffer_init(GLuint *instance_buffer, size_t size);
 extern void draw_indirect_buffer_init(GLuint *draw_indirect_buffer);
-extern void sort_key_buffer_init(GLuint *sort_key_buffer, size_t size);
 
 #endif

@@ -104,6 +104,13 @@ inline void shader_upload_lighting_uniforms(GLuint shader_prog,
   glUniform3fv(light_pos_loc, 1, light_pos);
 }
 
+inline void shader_upload_integer(GLuint shader_prog, const char *uniform,
+                                  int value) {
+  const GLint loc = glad_glGetUniformLocation(shader_prog, uniform);
+  glUseProgram(shader_prog);
+  glUniform1i(loc, value);
+}
+
 char *shader_load(const char *path) {
   FILE *shader_file = fopen(path, "r");
 

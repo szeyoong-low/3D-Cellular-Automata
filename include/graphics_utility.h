@@ -1,6 +1,7 @@
 #ifndef GRAPHICS_UTILITY_H
 #define GRAPHICS_UTILITY_H
 
+#include "camera.h"
 #include <GLFW/glfw3.h>
 #include <sys/types.h>
 
@@ -25,9 +26,22 @@ typedef struct {
   uint baseInstance;
 } DrawElementsIndirectCommand;
 
+typedef struct {
+  Camera *camera;
+  int *fb_width;
+  int *fb_height;
+  GLuint *accum_texture;
+  GLuint *reveal_texture;
+  GLuint blending_framebuffer;
+  const bool opacity;
+} WindowUserPointer;
+
 extern const DrawElementsIndirectCommand draw_indirect_cmd;
 
 extern void error_callback(int error, const char *description);
+
+extern void build_framebuffer(GLuint framebuffer, GLuint *accum_texture,
+                              GLuint *reveal_texture, int width, int height);
 
 // Keeps the GL viewport matched to the framebuffer when the window is resized
 extern void framebuffer_size_callback(GLFWwindow *window, int width,

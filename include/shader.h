@@ -11,8 +11,8 @@
 #define FRAGMENT_SHADER SHADER_PATH("fragment")
 #define OCCLUSION_COMPUTE_SHADER SHADER_PATH("occlusion")
 #define FRUSTUM_COMPUTE_SHADER SHADER_PATH("frustum")
-#define SORT_GLOBAL_COMPUTE_SHADER SHADER_PATH("sort_global")
-#define SORT_LOCAL_COMPUTE_SHADER SHADER_PATH("sort_local")
+#define POST_PROCESS_VERTEX_SHADER SHADER_PATH("post_process_vertex")
+#define POST_PROCESS_FRAGMENT_SHADER SHADER_PATH("post_process_fragment")
 
 #define VIEW_PROJ_UNIFORM "uViewProj"
 #define LIGHT_POS_UNIFORM "uLightPos"
@@ -21,8 +21,9 @@
 #define WIDTH_UNIFORM "uWidth"
 #define HEIGHT_UNIFORM "uHeight"
 #define DEPTH_UNIFORM "uDepth"
-#define SORT_BLOCK_UNIFORM "uBlockSize"
-#define SORT_STEP_UNIFORM "uStepSize"
+#define ACCUM_TEXTURE_UNIFORM "uAccumTexture"
+#define REVEAL_TEXTURE_UNIFORM "uRevealTexture"
+#define OPACITY_UNIFORM "uOpacity"
 
 #define NUM_WORKERS(dimension, local_size)                                     \
   ((uint)ceil((float)dimension / (float)local_size))
@@ -36,10 +37,17 @@
                     NUM_WORKERS(height, CULLING_LOCAL_SIZE_Y),                 \
                     NUM_WORKERS(depth, CULLING_LOCAL_SIZE_Z));
 
-#define SORTING_LOCAL_SIZE 1024
-#define SORTING_LOCAL_MAX_STEP (SORTING_LOCAL_SIZE / 2)
-#define SORTING_NUM_WORKERS_Y 1
-#define SORTING_NUM_WORKERS_Z 1
+#define WINDOW_FRAMEBUFFER_BINDING 0
+// One framebuffer can contain multiple buffer attachments
+#define ACCUM_COLOR_ATTACHMENT GL_COLOR_ATTACHMENT0
+#define REVEAL_COLOR_ATTACHMENT GL_COLOR_ATTACHMENT1
+#define ACCUM_BINDING_TARGET 0
+#define REVEAL_BINDING_TARGET 1
+#define TRIANGLE_NUM_VERTICES 3
+#define ACCUM_CLEAR                                                            \
+  (GLfloat[]) { 0, 0, 0, 0 }
+#define REVEAL_CLEAR                                                           \
+  (GLfloat[]) { 1, 1, 1, 1 }
 
 typedef struct {
   GLenum type; // GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, etc.
@@ -62,5 +70,8 @@ extern void shader_upload_dim_uniforms(GLuint shader_prog, uint width,
 
 extern void shader_upload_lighting_uniforms(GLuint shader_prog, bool lighting,
                                             vec3 light_pos);
+
+extern void shader_upload_integer(GLuint shader_prog, const char *uniform,
+                                  int value);
 
 #endif
