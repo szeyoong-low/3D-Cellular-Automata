@@ -24,18 +24,21 @@ These are a few systems we have been able to simulate. To see them in action, ru
         <td width="200" align="center"><img src="./resources/slime_growth.png" alt="Slime growth" width="200"/></td>
         <td width="200" align="center"><img src="./resources/rainbow_waves.png" alt="Rainbow rippling tank" width="200"/></td>
         <td width="200" align="center"><img src="./resources/cosmos.png" alt="The cosmos" width="200"/></td>
+        <td width="200" align="center"><img src="./resources/cavegen.png" alt="Cave generation" width="200"/></td>
     </tr>
     <tr>
         <td width="200" align="center" valign="top"><b>Crystal formation</b></td>
         <td width="200" align="center" valign="top"><b>Slime growth</b></td>
         <td width="200" align="center" valign="top"><b>Rainbow rippling tank</b></td>
         <td width="200" align="center" valign="top"><b>The cosmos</b></td>
+        <td width="200" align="center" valign="top"><b>Cave generation</b></td>
     </tr>
     <tr>
         <td width="200" align="center" valign="top"></td>
         <td width="200" align="center" valign="top">The slime (yellow) sends out pheromones (pink) to detect food (blue) and grow towards it</td>
         <td width="200" align="center" valign="top"></td>
         <td width="200" align="center" valign="top">We programmed the laws of gravity and let the emergent behaviour create the yellow filaments</td>
+        <td width="200" align="center" valign="top">We can generate 2D (and even 3D) cave maps, just like in video games</td>
     </tr>
 </table>
 
