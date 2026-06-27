@@ -105,3 +105,4 @@ Our renderer allows users to see the simulation up close by scrolling in and dra
 - [The PERFECT voxel rendering pipeline (and online demo) [Voxel Devlog #7] - Douglas](https://www.youtube.com/watch?v=IFUj53VwYvU&t=741s)
 
 - [Mastering Thread Calculations in WebGPU Compute Shaders: Workgroup Size, Count, and Thread Identification](https://medium.com/@josh.sideris/mastering-thread-calculations-in-webgpu-workgroup-size-count-and-thread-identification-6b44a87a4764)
+- [Weighted Blended Order-Independent Transparency - the Journal of Computer Graphics Techniques](https://jcgt.org/published/0002/02/09/)
