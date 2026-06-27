@@ -1,4 +1,5 @@
 #include "camera.h"
+#include "graphics_utility.h"
 
 #define DRAG_SENSITIVITY 0.005F // radians of rotation per pixel dragged
 #define ZOOM_SENSITIVITY 0.1F   // world units per scroll tick
@@ -37,16 +38,14 @@ inline float camera_grid_bounding_radius(uint width, uint height, uint depth) {
   return sqrtf((float)(SQUARE(width) + SQUARE(height) + SQUARE(depth))) / 2.0F;
 }
 
-void camera_init(Camera *cam, GLFWwindow *window, float initial_radius) {
-  cam->radius = initial_radius;
-  cam->azimuth = AZIMUTH_INIT;
-  cam->elevation = ELEVATION_INIT;
-  cam->dragging = false;
-  cam->last_x = LAST_X_INIT;
-  cam->last_y = LAST_Y_INIT;
+void camera_init(Camera *camera, GLFWwindow *window, float initial_radius) {
+  camera->radius = initial_radius;
+  camera->azimuth = AZIMUTH_INIT;
+  camera->elevation = ELEVATION_INIT;
+  camera->dragging = false;
+  camera->last_x = LAST_X_INIT;
+  camera->last_y = LAST_Y_INIT;
 
-  // Allow callbacks to access the Camera state
-  glfwSetWindowUserPointer(window, cam);
   glfwSetMouseButtonCallback(window, on_mouse_button);
   glfwSetCursorPosCallback(window, on_cursor_pos);
   glfwSetScrollCallback(window, on_scroll);
@@ -55,25 +54,19 @@ void camera_init(Camera *cam, GLFWwindow *window, float initial_radius) {
 // The camera has spherical coordinates as they correspond naturally with the
 // updates made by the callbacks (mouse drag changes azimuth/elevation, scroll
 // changes radius)
-void camera_position(Camera *cam, vec3 out) {
-  const float cos_elev = cosf(cam->elevation);
-  out[0] = cam->radius * cos_elev * sinf(cam->azimuth); // x
-  out[1] = cam->radius * sinf(cam->elevation);          // y
-  out[2] = cam->radius * cos_elev * cosf(cam->azimuth); // z
+void camera_position(Camera *camera, vec3 out) {
+  const float cos_elev = cosf(camera->elevation);
+  out[0] = camera->radius * cos_elev * sinf(camera->azimuth); // x
+  out[1] = camera->radius * sinf(camera->elevation);          // y
+  out[2] = camera->radius * cos_elev * cosf(camera->azimuth); // z
 }
 
-void camera_update_proj(GLFWwindow *window, float bounding_radius,
+void camera_update_proj(int fb_width, int fb_height, float bounding_radius,
                         float camera_radius, mat4 proj) {
   // The projection matrix gives vertices a coordinate w that represents the
   // positive depth along the camera's view axis. The normalised device
   // coordinates are then the xyz coordinates divided by w, so that objects
   // further from the camera are scaled down more (perspective divide).
-
-  // Use framebuffer size (# physical pixels) instead of window size
-  // (# logical pixels) as HiDPI displays have more physical than logical pixels
-  int fb_width, fb_height;
-  glfwGetFramebufferSize(window, &fb_width, &fb_height);
-  glViewport(0, 0, fb_width, fb_height);
 
   const float aspect = (float)fb_width / (float)fb_height;
   // Far plane covers the back of the grid plus a 2× margin for scrolling out
@@ -90,13 +83,14 @@ void on_mouse_button(GLFWwindow *window, int button, int action, int mods) {
     return;
   }
 
-  Camera *cam = glfwGetWindowUserPointer(window);
+  Camera *camera =
+      ((WindowUserPointer *)glfwGetWindowUserPointer(window))->camera;
 
   if (action == GLFW_PRESS) {
-    cam->dragging = true;
-    glfwGetCursorPos(window, &cam->last_x, &cam->last_y);
+    camera->dragging = true;
+    glfwGetCursorPos(window, &camera->last_x, &camera->last_y);
   } else {
-    cam->dragging = false;
+    camera->dragging = false;
   }
 }
 
@@ -106,43 +100,47 @@ void on_mouse_button(GLFWwindow *window, int button, int action, int mods) {
 // the direction facing away from you
 
 void on_cursor_pos(GLFWwindow *window, double x, double y) {
-  Camera *cam = glfwGetWindowUserPointer(window);
-  if (!cam->dragging) {
+  Camera *camera =
+      ((WindowUserPointer *)glfwGetWindowUserPointer(window))->camera;
+
+  if (!camera->dragging) {
     return;
   }
 
-  float dx = (float)(x - cam->last_x);
-  float dy = (float)(y - cam->last_y);
-  cam->last_x = x;
-  cam->last_y = y;
+  float dx = (float)(x - camera->last_x);
+  float dy = (float)(y - camera->last_y);
+  camera->last_x = x;
+  camera->last_y = y;
 
   // Dragging right causes camera to swing counterclockwise around y-axis.
   // The screen rotates left.
   // It is important to note that the camera orbits around a fixed point instead
   // of spinning in place, so the direction the camera travels and the direction
   // the scene appears to rotate are always opposite (relative motion)
-  cam->azimuth += dx * DRAG_SENSITIVITY;
+  camera->azimuth += dx * DRAG_SENSITIVITY;
   // Screen y increases downward, so dragging down must lower elevation
-  cam->elevation -= dy * DRAG_SENSITIVITY;
+  camera->elevation -= dy * DRAG_SENSITIVITY;
 
   // Leaves headroom before the poles where glm_lookat can flip if the
   // up-vector aligns with the view direction.
-  if (cam->elevation > ELEV_MAX) {
-    cam->elevation = ELEV_MAX;
+  if (camera->elevation > ELEV_MAX) {
+    camera->elevation = ELEV_MAX;
   }
 
-  if (cam->elevation < -ELEV_MAX) {
-    cam->elevation = -ELEV_MAX;
+  if (camera->elevation < -ELEV_MAX) {
+    camera->elevation = -ELEV_MAX;
   }
 }
 
 void on_scroll(GLFWwindow *window, double xoffset, double yoffset) {
   (void)xoffset; // Only care about vertical scroll
-  Camera *cam = glfwGetWindowUserPointer(window);
-  cam->radius *= ZOOM_PCT_CHANGE(yoffset);
+
+  Camera *camera =
+      ((WindowUserPointer *)glfwGetWindowUserPointer(window))->camera;
+  camera->radius *= ZOOM_PCT_CHANGE(yoffset);
 
   // Floored so that you can't zoom inside the grid
-  if (cam->radius < RADIUS_MIN) {
-    cam->radius = RADIUS_MIN;
+  if (camera->radius < RADIUS_MIN) {
+    camera->radius = RADIUS_MIN;
   }
 }

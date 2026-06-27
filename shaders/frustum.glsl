@@ -4,7 +4,6 @@
 #define OCCLUSION_SSBO_BINDING 1
 #define INSTANCE_SSBO_BINDING 2
 #define DRAW_INDIRECT_SSBO_BINDING 3
-#define SORT_KEY_SSBO_BINDING 4
 
 #define CULLING_LOCAL_SIZE_X 16
 #define CULLING_LOCAL_SIZE_Y 8
@@ -16,6 +15,10 @@
 // fully encloses it. Using a sphere slightly larger than the cube means
 // you'll never accidentally cull a cell that's partially in view.
 #define UNIT_CUBE_RADIUS 0.866F
+
+#define FULLY_OCCLUDED_CUBE 0x3F
+#define FACES_PER_CUBE 6
+#define ONE_BIT_MASK 0x1
 
 // x is column, y is row, z is slice, w is uWidth, h is uHeight
 #define INDEX(x, y, z, w, h) ((x) + (w) * ((y) + (h) * (z)))
@@ -36,6 +39,7 @@ uniform bool uOpacity;
 struct InstanceData {
   ivec3 offset;
   uint packedColour;
+  uint faceIndex;
 };
 
 layout(local_size_x = CULLING_LOCAL_SIZE_X, local_size_y = CULLING_LOCAL_SIZE_Y,
@@ -52,9 +56,6 @@ layout(std430, binding = INSTANCE_SSBO_BINDING) buffer InstanceBuffer {
 layout(std430, binding = DRAW_INDIRECT_SSBO_BINDING) buffer DrawIndirect {
   uint drawIndirect[];
 };
-layout(std430, binding = SORT_KEY_SSBO_BINDING) buffer SortKeys {
-  float sortKeys[];
-};
 
 // Because a cube isn't a point, we test against a bounding sphere.
 bool check_plane(vec4 plane, vec3 center) {
@@ -68,8 +69,13 @@ void main() {
   const uint z = gl_GlobalInvocationID.z;
 
   // Out of bounds/occluded
-  if (x >= uWidth || y >= uHeight || z >= uDepth ||
-      occludedCells[INDEX(x, y, z, uWidth, uHeight)] == 1) {
+  if (x >= uWidth || y >= uHeight || z >= uDepth) {
+    return;
+  }
+
+  uint occlusionMask = occludedCells[INDEX(x, y, z, uWidth, uHeight)];
+
+  if (occlusionMask == FULLY_OCCLUDED_CUBE) {
     return;
   }
 
@@ -84,18 +90,18 @@ void main() {
   if (check_plane(uLeft, center) && check_plane(uRight, center) &&
       check_plane(uTop, center) && check_plane(uBottom, center) &&
       check_plane(uNear, center) && check_plane(uFar, center)) {
-    uint instance_no = atomicAdd(drawIndirect[INSTANCE_COUNT_INDEX], 1);
 
-    // Prepare the information needed for rendering
-    instanceBuffer[instance_no].offset = ivec3(x_off, y_off, z_off);
-    instanceBuffer[instance_no].packedColour =
-        renderInfo[INDEX(x, y, z, uWidth, uHeight)];
+    // Generate one instance per visible face.
+    for (int i = 0; i < FACES_PER_CUBE; i++, occlusionMask >>= 1) {
+      if ((occlusionMask & ONE_BIT_MASK) == 0) {
+        uint instance_no = atomicAdd(drawIndirect[INSTANCE_COUNT_INDEX], 1);
 
-    if (uOpacity) {
-      // Use projected distance of the cell along the camera's view axis
-      // to sort the instances in descending order of distance from the
-      // camera before drawing
-      sortKeys[instance_no] = dot(center, uViewDir);
+        // Prepare the information needed for rendering
+        instanceBuffer[instance_no].offset = ivec3(x_off, y_off, z_off);
+        instanceBuffer[instance_no].packedColour =
+            renderInfo[INDEX(x, y, z, uWidth, uHeight)];
+        instanceBuffer[instance_no].faceIndex = i;
+      }
     }
   }
 }

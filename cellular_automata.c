@@ -15,6 +15,7 @@
 // Must come after glad is included so that types are defined
 #include "buffer.h"
 #include "camera.h"
+#include "face.h"
 #include "frustum.h"
 #include "graphics_utility.h"
 #include "shader.h"
@@ -35,6 +36,7 @@ int main(int argc, char **argv) {
   const uint sim_depth = args.depth;
   const uint sim_depth_padded = (uint)next_power_two(sim_depth);
   const size_t sim_size = sim_width * sim_height * sim_depth;
+  const size_t num_instances = sim_size * FACES_PER_CUBE;
   const double step_time = args.steptime;
   const bool opacity = args.opacity;
 
@@ -91,11 +93,35 @@ int main(int argc, char **argv) {
   GLuint zero = 0;
   vec3 eye;
   vec3 light_pos = {10.0F, 10.0F, 10.0F};
+  int fb_width, fb_height;
 
-  // For bitonic sorting
-  const float neg_inf = -HUGE_VALF;
-  const ulong sim_size_padded = next_power_two(sim_size);
-  const int sort_num_passes = (int)log2((double)sim_size_padded);
+  // For weighted-blended order-independent transparency
+  GLuint blending_framebuffer = 0;
+  GLuint accum_texture, reveal_texture;
+  GLuint post_processing = 0;
+
+  if (opacity) {
+    glEnable(GL_BLEND);
+    glCreateFramebuffers(1, &blending_framebuffer);
+    glfwGetFramebufferSize(window, &fb_width, &fb_height);
+    build_framebuffer(blending_framebuffer, &accum_texture, &reveal_texture,
+                      fb_width, fb_height);
+
+    post_processing = shader_build_program(
+        (ShaderDef[]){{GL_VERTEX_SHADER, POST_PROCESS_VERTEX_SHADER},
+                      {GL_FRAGMENT_SHADER, POST_PROCESS_FRAGMENT_SHADER}},
+        2);
+
+    shader_upload_integer(post_processing, ACCUM_TEXTURE_UNIFORM,
+                          ACCUM_BINDING_TARGET);
+
+    shader_upload_integer(post_processing, REVEAL_TEXTURE_UNIFORM,
+                          REVEAL_BINDING_TARGET);
+  } else {
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+  }
+
   // Radius of the smallest sphere that encloses the grid, from its centre.
   // Used to size the initial camera distance, FOV, and far clipping plane.
   const float bounding_radius =
@@ -104,8 +130,20 @@ int main(int argc, char **argv) {
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
   // Start 2× the bounding radius away so the full grid fits in the FOV
-  Camera cam;
-  camera_init(&cam, window, 2.0F * bounding_radius);
+  Camera camera;
+  camera_init(&camera, window, 2.0F * bounding_radius);
+
+  // Allow callbacks to access state
+  WindowUserPointer window_user_pointer = {
+      .camera = &camera,
+      .fb_width = &fb_width,
+      .fb_height = &fb_height,
+      .accum_texture = &accum_texture,
+      .reveal_texture = &reveal_texture,
+      .blending_framebuffer = blending_framebuffer,
+      .opacity = opacity,
+  };
+  glfwSetWindowUserPointer(window, &window_user_pointer);
 
   // Shaders are loaded from disk relative to the working directory.
   // Run the binary from the project root: ./bin/cellular_automata
@@ -131,51 +169,32 @@ int main(int argc, char **argv) {
   // Upload these once as they don't change per frame
   shader_upload_lighting_uniforms(render_pipeline, args.lighting, light_pos);
 
+  shader_upload_integer(render_pipeline, OPACITY_UNIFORM, opacity);
+
   shader_upload_dim_uniforms(occlusion_culling, sim_width, sim_height,
                              sim_depth);
+
+  shader_upload_integer(occlusion_culling, NO_WALLS_UNIFORM, args.no_walls);
+  shader_upload_integer(occlusion_culling, OPACITY_UNIFORM, opacity);
+
   shader_upload_dim_uniforms(frustum_culling, sim_width, sim_height, sim_depth);
 
   // VRAM buffer initialisation
   GLuint attribute_buffer, vertex_buffer, element_buffer, render_info_buffer,
-      occlusion_buffer, instance_buffer, draw_indirect_buffer, sort_key_buffer;
+      occlusion_buffer, instance_buffer, draw_indirect_buffer;
 
   attribute_buffer_init(&attribute_buffer);
   vertex_buffer_init(&vertex_buffer);
   element_buffer_init(&element_buffer);
   render_info_buffer_init(&render_info_buffer, sim_size, sim_render_info(sim));
   occlusion_buffer_init(&occlusion_buffer, sim_size);
-  instance_buffer_init(&instance_buffer,
-                       (opacity) ? sim_size_padded : sim_size);
+  instance_buffer_init(&instance_buffer, num_instances);
   draw_indirect_buffer_init(&draw_indirect_buffer);
-
-  GLuint sort_global, sort_local;
-  GLint sort_global_block_loc, sort_global_step_loc, sort_local_block_loc,
-      sort_local_step_loc;
-
-  if (opacity) {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    sort_global = shader_build_program(
-        (ShaderDef[]){{GL_COMPUTE_SHADER, SORT_GLOBAL_COMPUTE_SHADER}}, 1);
-    sort_global_block_loc =
-        glGetUniformLocation(sort_global, SORT_BLOCK_UNIFORM);
-    sort_global_step_loc = glGetUniformLocation(sort_global, SORT_STEP_UNIFORM);
-
-    sort_local = shader_build_program(
-        (ShaderDef[]){{GL_COMPUTE_SHADER, SORT_LOCAL_COMPUTE_SHADER}}, 1);
-    sort_local_block_loc = glGetUniformLocation(sort_local, SORT_BLOCK_UNIFORM);
-    sort_local_step_loc = glGetUniformLocation(sort_local, SORT_STEP_UNIFORM);
-
-    sort_key_buffer_init(&sort_key_buffer, sim_size_padded);
-  } else {
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-  }
 
   double last_step_time = glfwGetTime(); // seconds as a double since glfwInit()
   glUseProgram(occlusion_culling);
-  DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded, sim_depth_padded)
+  DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded,
+                           sim_depth_padded)
   glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
   // store to calculate the frame rate
@@ -203,7 +222,8 @@ int main(int argc, char **argv) {
                            sim_render_info(sim));
 
       glUseProgram(occlusion_culling);
-      DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded, sim_depth_padded)
+      DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded,
+                               sim_depth_padded)
       // Ensures writes to the occlusion SSBO are complete and visible to the
       // next compute shader that needs to read them
       glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -214,63 +234,40 @@ int main(int argc, char **argv) {
                          (GLsizeiptr)sizeof(GLuint), &zero);
 
     // Rebuild the view matrix using current camera position
-    camera_position(&cam, eye);
+    camera_position(&camera, eye);
     // Camera looks at the origin, and y-axis is up
     glm_lookat(eye, origin_coords, up_direction, view);
-    camera_update_proj(window, bounding_radius, cam.radius, proj);
-
-    if (opacity) {
-      glClearNamedBufferData(sort_key_buffer, GL_R32F, GL_RED, GL_FLOAT,
-                             &neg_inf);
-    }
+    camera_update_proj(fb_width, fb_height, bounding_radius, camera.radius,
+                       proj);
 
     // Frustum culling
     glm_mat4_mul(proj, view, view_proj);
     glUseProgram(frustum_culling);
     frustum_extract(view_proj, eye);
-    DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded, sim_depth_padded)
-
-    // The GPU maintains two buffers of the same pixel dimensions as your
-    // window:
-    // - Colour buffer: the RGB value of each pixel
-    // - Depth buffer: the depth (z value after perspective divide, in 0–1
-    //   range) of the closest fragment drawn to each pixel so far
-
-    // At the start of each frame, the depth buffer still holds the values from
-    // the previous frame.
-    // - GL_COLOR_BUFFER_BIT — fill the colour buffer with the clear colour
-    // - GL_DEPTH_BUFFER_BIT — fill the depth buffer with 1.0 everywhere
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    DISPATCH_CULLING_COMPUTE(sim_width_padded, sim_height_padded,
+                             sim_depth_padded)
 
     if (opacity) {
-      // Ensure that the frustum culler has completed its writes before reads
-      // by the sorting algorithm
-      glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+      // For drawing
+      glBindFramebuffer(GL_FRAMEBUFFER, blending_framebuffer);
+      glClearBufferfv(GL_COLOR, ACCUM_BINDING_TARGET, ACCUM_CLEAR);
+      glClearBufferfv(GL_COLOR, REVEAL_BINDING_TARGET, REVEAL_CLEAR);
+      glBlendFunci(ACCUM_BINDING_TARGET, GL_ONE, GL_ONE);
+      glBlendFunci(REVEAL_BINDING_TARGET, GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+    } else {
+      // The GPU maintains two buffers of the same pixel dimensions as your
+      // window:
+      // - Colour buffer: the RGB value of each pixel
+      // - Depth buffer: the depth (z value after perspective divide, in 0–1
+      //   range) of the closest fragment drawn to each pixel so far
 
-      // Sort instances back to front to address inconsistent alpha blending due
-      // to z-fighting
-      for (int i = 1; i <= sort_num_passes; i++) {
-        const uint block_size = POWER_TWO(i);
+      // At the start of each frame, the depth buffer still holds the values
+      // from the previous frame.
+      // - GL_COLOR_BUFFER_BIT — fill the colour buffer with the clear colour
+      // - GL_DEPTH_BUFFER_BIT — fill the depth buffer with 1.0 everywhere
 
-        for (int j = i - 1; j >= 0; j--) {
-          const uint step_size = POWER_TWO(j);
-          // Swap partner is within shared memory
-          const bool local = step_size <= SORTING_LOCAL_MAX_STEP;
-
-          glUseProgram(local ? sort_local : sort_global);
-          glUniform1ui(local ? sort_local_block_loc : sort_global_block_loc,
-                       block_size);
-          glUniform1ui(local ? sort_local_step_loc : sort_global_step_loc,
-                       step_size);
-          glDispatchCompute(NUM_WORKERS(sim_size_padded, SORTING_LOCAL_SIZE),
-                            SORTING_NUM_WORKERS_Y, SORTING_NUM_WORKERS_Z);
-          // This is a global memory barrier
-          glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
-          if (local) {
-            break; // All smaller step sizes taken care of
-          }
-        }
-      }
+      // Clear the framebuffer drawn into
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 
     // glDrawElementsIndirect works exactly like glDrawElementsInstanced,
@@ -282,11 +279,24 @@ int main(int argc, char **argv) {
     glUseProgram(render_pipeline);
     glUniformMatrix4fv(view_proj_loc, 1, GL_FALSE, (float *)view_proj);
     glUniform3fv(camera_pos_loc, 1, eye);
-    // Ensure that the sorting algorithm has completed its writes before reads
+    // Ensure that the compute shaders have completed its writes before reads
     // by the rendering pipeline
     glMemoryBarrier(GL_COMMAND_BARRIER_BIT |
                     GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
     glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_BYTE, 0);
+
+    if (opacity) {
+      // For final rendering
+      glBindFramebuffer(GL_FRAMEBUFFER, WINDOW_FRAMEBUFFER_BINDING);
+      // Clear the framebuffer rendered into
+      glClear(GL_COLOR_BUFFER_BIT);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+      glUseProgram(post_processing);
+      glBindTextureUnit(ACCUM_BINDING_TARGET, accum_texture);
+      glBindTextureUnit(REVEAL_BINDING_TARGET, reveal_texture);
+      glDrawArrays(GL_TRIANGLES, 0, TRIANGLE_NUM_VERTICES);
+    }
 
     // The GPU has 2 framebuffers:
     // - the back buffer that is drawn into
@@ -315,6 +325,7 @@ int main(int argc, char **argv) {
   glDeleteProgram(render_pipeline);
   glDeleteProgram(occlusion_culling);
   glDeleteProgram(frustum_culling);
+  glDeleteProgram(post_processing);
   glDeleteVertexArrays(1, &attribute_buffer);
   glDeleteBuffers(1, &vertex_buffer);
   glDeleteBuffers(1, &element_buffer);
@@ -323,9 +334,9 @@ int main(int argc, char **argv) {
   glDeleteBuffers(1, &instance_buffer);
   glDeleteBuffers(1, &draw_indirect_buffer);
   if (opacity) {
-    glDeleteProgram(sort_global);
-    glDeleteProgram(sort_local);
-    glDeleteBuffers(1, &sort_key_buffer);
+    glDeleteFramebuffers(1, &blending_framebuffer);
+    glDeleteTextures(1, &accum_texture);
+    glDeleteTextures(1, &reveal_texture);
   }
   DESTROY_AND_EXIT(window, true)
 }

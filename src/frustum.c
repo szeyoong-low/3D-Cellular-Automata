@@ -1,4 +1,5 @@
 #include "frustum.h"
+#include "shader.h"
 #include <cglm/vec3.h>
 
 // Names of the compute shader's uniform variables
@@ -9,7 +10,6 @@
 #define NEAR_PLANE_UNIFORM "uNear"
 #define FAR_PLANE_UNIFORM "uFar"
 #define VIEW_DIR_UNIFORM "uViewDir"
-#define OPACITY_UNIFORM "uOpacity"
 
 // Location identifiers of the compute shader's uniform variables
 static GLint left_plane_loc;

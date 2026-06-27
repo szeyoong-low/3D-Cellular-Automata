@@ -1,6 +1,8 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#include <glad/glad.h>
+#define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <cglm/cglm.h>
 #include <cglm/types.h>
@@ -34,15 +36,18 @@ extern float camera_grid_bounding_radius(uint width, uint height, uint depth);
 // Fill the camera with sensible defaults so it orbits the origin from a nice
 // angle, and registers event callbacks for mouse clicks, cursor movements, and
 // scroll.
-extern void camera_init(Camera *cam, GLFWwindow *window, float initial_radius);
+// Caller MUST add the camera to the window user pointer.
+extern void camera_init(Camera *camera, GLFWwindow *window,
+                        float initial_radius);
 
 // Convert spherical coordinates to a world-space eye (Cartesian coordinates).
 // Pass the result directly to glm_lookat as the first argument.
-extern void camera_position(Camera *cam, vec3 out);
+extern void camera_position(Camera *camera, vec3 out);
 
 // Side effects: updates window viewport size, writes new projection matrix into
-// proj
-extern void camera_update_proj(GLFWwindow *window, float bounding_radius,
-                               float camera_radius, mat4 proj);
+//               proj, sets fb_width and fb_height
+extern void camera_update_proj(int fb_width, int fb_height,
+                               float bounding_radius, float camera_radius,
+                               mat4 proj);
 
 #endif

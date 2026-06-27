@@ -2,9 +2,9 @@
 #version 450 core
 
 #define POSITION_ATTR_BINDING 0
-#define NORMAL_ATTR_BINDING 1
-#define OFFSET_ATTR_BINDING 2
-#define COLOUR_ATTR_BINDING 3
+#define OFFSET_ATTR_BINDING 1
+#define COLOUR_ATTR_BINDING 2
+#define FACE_INDEX_ATTR_BINDING 3
 
 #define DIMENSION_SCALE 0.5 // Multiply by 0.5 to produce unit cubes
 #define DEFAULT_W_COMPONENT 1.0
@@ -17,6 +17,25 @@
 #define Z_AXIS_NEGATIVE vec3(0, 0, -1)
 #define FACES_PER_CUBE 6
 
+#define LOCAL_POSITION(x, y, tan, bitan, norm)                                 \
+  (((x) * (tan)) + ((y) * (bitan)) + (norm))
+
+// Order: front -> back -> left -> right -> bottom -> top
+// In OpenGL, the y-axis grows upwards, x-axis righwards, and z-axis towards you
+// Tangent × bitangent must equal the outward normal so that transformed
+// vertices wind counter-clockwise.
+
+// Where local x-axis of the face maps to
+const vec3 TANGENTS[FACES_PER_CUBE] =
+    vec3[FACES_PER_CUBE](X_AXIS_POSITIVE, X_AXIS_NEGATIVE, Z_AXIS_POSITIVE,
+                         Z_AXIS_NEGATIVE, X_AXIS_POSITIVE, X_AXIS_POSITIVE);
+
+// Where local y-axis of the face maps to
+const vec3 BITANGENTS[FACES_PER_CUBE] =
+    vec3[FACES_PER_CUBE](Y_AXIS_POSITIVE, Y_AXIS_POSITIVE, Y_AXIS_POSITIVE,
+                         Y_AXIS_POSITIVE, Z_AXIS_POSITIVE, Z_AXIS_NEGATIVE);
+
+// Local offset (to set up faces within cube)
 const vec3 NORMALS[FACES_PER_CUBE] =
     vec3[FACES_PER_CUBE](Z_AXIS_POSITIVE, Z_AXIS_NEGATIVE, X_AXIS_NEGATIVE,
                          X_AXIS_POSITIVE, Y_AXIS_NEGATIVE, Y_AXIS_POSITIVE);
@@ -30,15 +49,17 @@ uniform mat4 uViewProj; // View composed with project
 
 // Declaration of input variable aPos (per-vertex position attribute)
 // in: from CPU side (VAO)
-// vec3: 3-component float vector
+// vec2: 2-component float vector
 // location 0 matches attribute slot 0 in the VAO
-layout(location = POSITION_ATTR_BINDING) in vec3 aPos;
+layout(location = POSITION_ATTR_BINDING) in vec2 aPos;
 
 // Per-instance world position, fed from the instance VBO
 layout(location = OFFSET_ATTR_BINDING) in vec3 aOffset;
 
-// Calculating transformed normals, for Phong lighting
-layout(location = NORMAL_ATTR_BINDING) in uint aNormalIndex;
+// Used to index arrays of tangents, bitangents, and normals, so that face can
+// be oriented and offset.
+// Also for calculating transformed normals for Phong lighting
+layout(location = FACE_INDEX_ATTR_BINDING) in uint aFaceIndex;
 
 out flat vec3 vNormal;  // local normal transformed into world space
 out flat vec3 vFragPos; // World space position of the vertex
@@ -69,17 +90,20 @@ out flat vec4 vColor;
 void main() {
   // Matrix multiplication applied right-to-left
   // aOffset shifts the entire cube to its world position
-  // aPos gives the position of each corner
-  // Multiply by 0.5 to produce unit cubes
+  // aPos gives the local position of each corner
   vec4 worldSpacePos =
-      vec4(aPos * DIMENSION_SCALE + aOffset, DEFAULT_W_COMPONENT);
+      vec4(LOCAL_POSITION(aPos.x, aPos.y, TANGENTS[aFaceIndex],
+                          BITANGENTS[aFaceIndex], NORMALS[aFaceIndex]) *
+                   DIMENSION_SCALE +
+               aOffset,
+           DEFAULT_W_COMPONENT);
 
   // gl_Position is a variable that must be written to
   gl_Position = uViewProj * worldSpacePos;
 
   // vFragPos stays in world space as it's what fragment shader needs
   vFragPos = vec3(worldSpacePos);
-  vNormal = NORMALS[aNormalIndex];
+  vNormal = NORMALS[aFaceIndex];
 
   vColor = aColor;
 }
