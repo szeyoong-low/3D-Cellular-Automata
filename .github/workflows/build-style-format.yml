@@ -1,10 +1,13 @@
 name: CI
 
 on:
-  push:
-    branches: [ "**" ]
+  # push:
+  #   branches: [ "**" ]
   pull_request:
     branches: [ "main" ]
+
+env:
+  MAKEFILE_DIR: "."
 
 jobs:
   lint-and-format:
@@ -15,8 +18,8 @@ jobs:
     # - name: Install Dependencies
     #   run: 
     - name: Linter
-      run: make lint
+      run: make -C ${{ env.MAKEFILE_DIR }} lint
     - name: Formatter
-      run: Run Formatter
+      run: make -C ${{ env.MAKEFILE_DIR }} format
     - name: Build
-      run: make build
+      run: make -C ${{ env.MAKEFILE_DIR }} build
