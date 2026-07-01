@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  lint-and-format:
+    runs-on: ubuntu-latest
+    steps:
+    # clone the repo 
+    - uses: actions/checkout@v4
+    # - name: Install Dependencies
+    #   run: 
+    - name: Linter
+      run: make lint
+    - name: Formatter
+      run: Run Formatter
+    - name: Build
+      run: make build
