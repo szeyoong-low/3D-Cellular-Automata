@@ -8,15 +8,16 @@ on:
 
 env:
   MAKEFILE_DIR: "."
+  SCRIPTS_DIR: "./scripts"
 
 jobs:
-  lint-and-format:
+  lint-format-build:
     runs-on: ubuntu-latest
     steps:
     # clone the repo 
     - uses: actions/checkout@v4
-    # - name: Install Dependencies
-    #   run: 
+    - name: Install Dependencies
+      run: cd ${{ env.SCRIPTS_DIR }} && bash install_dependencies.sh
     - name: Linter
       run: make -C ${{ env.MAKEFILE_DIR }} lint
     - name: Formatter
