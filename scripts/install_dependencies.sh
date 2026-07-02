@@ -1,1 +1,0 @@
-# dependency installation script for the project
