@@ -1,0 +1,29 @@
+#!/bin/bash
+
+echo "Running pre-push hook: Style Check, Format Check, and Build..."
+
+# Ensure we are at the project root
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$PROJECT_ROOT" || exit 1
+
+# Run the same checks as the CI pipeline
+echo "=> Running lint..."
+if ! make lint; then
+    echo "❌ Lint failed. Please fix the errors before pushing."
+    exit 1
+fi
+
+echo "=> Running format check..."
+if ! make check-format; then
+    echo "❌ Format check failed. Please run 'make format', commit the changes, and try pushing again."
+    exit 1
+fi
+
+echo "=> Running build..."
+if ! make build; then
+    echo "❌ Build failed. Please fix the build errors before pushing."
+    exit 1
+fi
+
+echo "✅ All checks passed! Proceeding with push."
+exit 0
