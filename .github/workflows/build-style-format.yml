@@ -1,8 +1,6 @@
-name: CI
+name: CI main
 
 on:
-  # push:
-  #   branches: [ "**" ]
   pull_request:
     branches: [ "main" ]
 
@@ -13,14 +11,18 @@ env:
 jobs:
   lint-format-build:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
     steps:
     # clone the repo 
     - uses: actions/checkout@v4
+
     - name: Install Dependencies
-      run: cd ${{ env.SCRIPTS_DIR }} && bash install_dependencies.sh
-    - name: Linter
+      run: |
+        bash ${{ env.SCRIPTS_DIR }}/setup_environment.sh
+        bash ${{ env.SCRIPTS_DIR }}/confirm_environment.sh
+    - name: Style Check
       run: make -C ${{ env.MAKEFILE_DIR }} lint
-    - name: Formatter
-      run: make -C ${{ env.MAKEFILE_DIR }} format
+    - name: Format Check
+      run: make -C ${{ env.MAKEFILE_DIR }} check-format
     - name: Build
       run: make -C ${{ env.MAKEFILE_DIR }} build
