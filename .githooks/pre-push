@@ -8,22 +8,32 @@ cd "$PROJECT_ROOT" || exit 1
 
 # Run the same checks as the CI pipeline
 echo "=> Running lint..."
-if ! make lint; then
+if ! make lint </dev/null; then
     echo "❌ Lint failed. Please fix the errors before pushing."
     exit 1
 fi
 
 echo "=> Running format check..."
-if ! make check-format; then
+if ! make check-format </dev/null; then
     echo "❌ Format check failed. Please run 'make format', commit the changes, and try pushing again."
     exit 1
 fi
 
 echo "=> Running build..."
-if ! make build; then
+if ! make build </dev/null; then
     echo "❌ Build failed. Please fix the build errors before pushing."
     exit 1
 fi
 
-echo "✅ All checks passed! Proceeding with push."
+echo "✅ Shared checks passed!"
+
+# Route to the user's local hook if it exists
+LOCAL_HOOK="$PROJECT_ROOT/.git/hooks/pre-push"
+if [ -x "$LOCAL_HOOK" ]; then
+    echo "=> Running local pre-push hook ($LOCAL_HOOK)..."
+    # Execute the local hook passing any arguments, and stdin will automatically be inherited
+    exec "$LOCAL_HOOK" "$@"
+fi
+
+echo "✅ Proceeding with push."
 exit 0
