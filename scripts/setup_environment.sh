@@ -10,7 +10,26 @@ source "$SCRIPT_DIR/dependencies.sh"
 echo "Checking for Homebrew..."
 if ! command -v brew &> /dev/null; then
     echo -e "${YELLOW}Homebrew not found. Installing Homebrew first...${NC}"
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
+# Configure Homebrew in PATH for the current script
+if [[ -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+    eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+elif [[ -x /opt/homebrew/bin/brew ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [[ -x /usr/local/bin/brew ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+# Add it to .bashrc for future interactive shells on a new Linux machine
+if ! grep -q "brew shellenv" ~/.bashrc 2>/dev/null; then
+    echo 'eval "$('$(command -v brew)' shellenv)"' >> ~/.bashrc
+fi
+
+# If running in GitHub Actions, add it to GITHUB_PATH for subsequent steps
+if [[ -n "${GITHUB_PATH}" ]]; then
+    dirname "$(command -v brew)" >> "$GITHUB_PATH"
 fi
 
 echo "Updating Homebrew..."
