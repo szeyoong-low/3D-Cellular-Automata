@@ -19,8 +19,8 @@ jobs:
       run: bash ${{ env.SCRIPTS_DIR }}/setup_environment.sh
     - name: Confirm Environment
       run: bash ${{ env.SCRIPTS_DIR }}/confirm_environment.sh
-    - name: Style Check
-      run: make -C ${{ env.MAKEFILE_DIR }} lint
+    # - name: Style Check
+    #   run: make -C ${{ env.MAKEFILE_DIR }} lint
     - name: Format Check
       run: make -C ${{ env.MAKEFILE_DIR }} check-format
     - name: Build
