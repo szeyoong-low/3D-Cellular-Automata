@@ -1,0 +1,27 @@
+name: CI main
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  MAKEFILE_DIR: "."
+  SCRIPTS_DIR: "./scripts"
+
+jobs:
+  lint-format-build:
+    runs-on: ubuntu-latest
+    steps:
+    # clone the repo 
+    - uses: actions/checkout@v4
+
+    - name: Install Dependencies
+      run: bash ${{ env.SCRIPTS_DIR }}/setup_environment.sh
+    - name: Confirm Environment
+      run: bash ${{ env.SCRIPTS_DIR }}/confirm_environment.sh
+    # - name: Style Check
+    #   run: make -C ${{ env.MAKEFILE_DIR }} lint
+    - name: Format Check
+      run: make -C ${{ env.MAKEFILE_DIR }} check-format
+    - name: Build
+      run: make -C ${{ env.MAKEFILE_DIR }} build

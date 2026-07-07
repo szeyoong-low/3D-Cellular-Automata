@@ -1,0 +1,9 @@
+DEPENDENCIES=(
+    gcc
+    make
+    glfw
+    cglm
+    bear
+    llvm
+    valgrind
+)

@@ -156,6 +156,10 @@ format:
 	@$(FORMATTER) -style=llvm -i $(CODEBASE) $(EXT_SHADERS)
 	@printf "\nFormatting complete\n"
 
+check-format:
+	@$(FORMATTER) -style=llvm --dry-run --Werror $(CODEBASE) $(EXT_SHADERS)
+	@printf "\nFormatting check complete\n"
+
 clean:
 	@rm -rf $(BUILD_DIR) $(BIN_DIR)
 	@printf "\nCleaning complete\n"

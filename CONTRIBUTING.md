@@ -1,7 +1,7 @@
 # Guidelines
 
 ## Build toolchain
-- Dependencies: see tech stack under [README](/README.md). You will need `gcc`, `clang-tidy`, and `clang-format`.
+- ~~Dependencies: see tech stack under [README](/README.md). You will need `gcc`, `clang-tidy`, and `clang-format`.~~ Refer to [Getting Started](/getting_started.md) to set up the environment on your machine.
 - Run `make build` from the project root. Add the `clean` target if you wish to start afresh, and run `make all` if you want to run the formatter and linter as well.
 - To run a simulator, execute `./bin/cellular_automata ./bin/<simulation name>`. Use `--help` to see available flags.
 
@@ -43,6 +43,7 @@ For all other matters, we will follow the conventions that we have been observin
 - Ping the chat to ask who's available for code review
 - Pull requests must be complete features that pass the relevant tests
 - Make feature suggestions and report bugs in the [Issues](https://github.com/szeyoong-low/3D-Cellular-Automata/issues) tab
+- Opening pull request into main triggers CI pipeline to conduct relevant checks before the code is pulled. Reviewers, please make sure that the pipeline finishes cleanly before approving the PR.
 
 ## Branch protection and repo settings
 - ~~Auto-close issues with merged linked pull requests~~
